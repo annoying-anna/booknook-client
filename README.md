@@ -3,8 +3,8 @@
 A modern, responsive, full-stack online library application built with **Next.js 14/16 (App Router)**, **TypeScript**, **Tailwind CSS**, **BetterAuth**, and **MongoDB Atlas**.
 
 ## 🌐 Live Website URL
-- **Client Deployment**: [https://booknook-library.vercel.app](https://booknook-library.vercel.app)
-- **Server API**: [https://booknook-server.vercel.app](https://booknook-server.vercel.app)
+- **Client Deployment**: [https://booknook-client-tau.vercel.app](https://booknook-client-tau.vercel.app)
+- **Server API**: [https://booknook-server-ashy.vercel.app](https://booknook-server-ashy.vercel.app)
 
 ---
 
