@@ -7,7 +7,8 @@ import { createBook, uploadToImgBB } from "@/lib/api";
 import Loader from "@/components/Loader";
 import { CATEGORIES } from "@/lib/categories";
 import { toast } from "sonner";
-import { Upload, Image as ImageIcon } from "lucide-react";
+import { Upload, Image as ImageIcon, Sparkles, BookPlus, ArrowLeft, ShieldCheck, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
 
 const CATEGORY_LIST = Object.keys(CATEGORIES);
 
@@ -34,7 +35,7 @@ export default function AddBookPage() {
   }, [session, sessionLoading, router]);
 
   if (sessionLoading || !session?.user) {
-    return <Loader label="Verifying membership" />;
+    return <Loader label="Verifying membership credentials" />;
   }
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -48,7 +49,7 @@ export default function AddBookPage() {
       setUploadingImage(true);
       const url = await uploadToImgBB(file);
       setImageUrl(url);
-      toast.success("Cover image uploaded to ImgBB!");
+      toast.success("Cover image successfully uploaded to ImgBB!");
     } catch (err: unknown) {
       const msg = (err as Error)?.message || "Failed to upload image";
       toast.error(msg);
@@ -87,7 +88,7 @@ export default function AddBookPage() {
         totalCopies: Number(totalCopies),
       });
 
-      toast.success("Book successfully added to the catalog!");
+      toast.success("Book successfully added to the community catalog!");
       router.push("/books");
       router.refresh();
     } catch (err: unknown) {
@@ -100,38 +101,52 @@ export default function AddBookPage() {
   }
 
   return (
-    <div className="wrap section max-w-3xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Add a Book</h1>
-        <p className="mt-2 font-reading text-lg text-ink-soft">
-          Contribute a new title to the BookNook community library.
+    <div className="wrap section max-w-4xl space-y-8">
+      {/* Back button */}
+      <div>
+        <Link
+          href="/books"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-ink-soft hover:text-brand transition-colors"
+        >
+          <ArrowLeft size={16} /> Back to Catalog
+        </Link>
+      </div>
+
+      <div className="flex flex-col gap-2 border-b border-line pb-6">
+        <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 px-3 py-1 text-xs font-bold w-fit">
+          <BookPlus size={14} /> Contribute to Library
+        </div>
+        <h1 className="text-3xl font-extrabold sm:text-4xl tracking-tight text-ink">
+          Add a New Volume
+        </h1>
+        <p className="font-reading text-base text-ink-soft">
+          Share a book from your personal shelf with our readers. Available copies are automatically tracked.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-line bg-surface p-6 sm:p-8">
+      <form onSubmit={handleSubmit} className="space-y-8 rounded-3xl border border-line bg-surface p-6 sm:p-10 shadow-sm">
+        {/* Basic Book Meta */}
         <div className="grid gap-6 sm:grid-cols-2">
-          {/* Title */}
           <div>
             <label className="label" htmlFor="b-title">Book Title</label>
             <input
               id="b-title"
               type="text"
-              className="input"
-              placeholder="e.g. The Great Gatsby"
+              className="input font-semibold"
+              placeholder="e.g. Sapiens: A Brief History of Humankind"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
             />
           </div>
 
-          {/* Author */}
           <div>
-            <label className="label" htmlFor="b-author">Author</label>
+            <label className="label" htmlFor="b-author">Author Name</label>
             <input
               id="b-author"
               type="text"
               className="input"
-              placeholder="e.g. F. Scott Fitzgerald"
+              placeholder="e.g. Yuval Noah Harari"
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
               required
@@ -139,13 +154,13 @@ export default function AddBookPage() {
           </div>
         </div>
 
+        {/* Category and Copies */}
         <div className="grid gap-6 sm:grid-cols-2">
-          {/* Category */}
           <div>
-            <label className="label" htmlFor="b-category">Category</label>
+            <label className="label" htmlFor="b-category">Category Department</label>
             <select
               id="b-category"
-              className="input bg-surface"
+              className="input bg-surface font-medium"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             >
@@ -157,9 +172,8 @@ export default function AddBookPage() {
             </select>
           </div>
 
-          {/* Total Copies */}
           <div>
-            <label className="label" htmlFor="b-copies">Total Copies</label>
+            <label className="label" htmlFor="b-copies">Total Number of Copies</label>
             <input
               id="b-copies"
               type="number"
@@ -173,17 +187,22 @@ export default function AddBookPage() {
           </div>
         </div>
 
-        {/* Cover Image Upload (ImgBB) */}
-        <div>
-          <label className="label">Book Cover Image</label>
-          <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
-            <div className="space-y-3">
+        {/* Cover Image Upload */}
+        <div className="space-y-3">
+          <label className="label">Cover Image (Upload file to ImgBB or enter URL)</label>
+          <div className="grid gap-6 sm:grid-cols-[1fr_auto]">
+            <div className="space-y-4">
               <label
                 htmlFor="b-image-file"
-                className="flex cursor-pointer items-center justify-center gap-3 rounded-xl border border-dashed border-line bg-paper/50 px-4 py-4 text-sm font-medium hover:border-brand"
+                className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-line bg-paper/40 p-6 text-center hover:border-brand hover:bg-paper transition-all"
               >
-                <Upload size={18} className="text-ink-soft" />
-                <span>{uploadingImage ? "Uploading to ImgBB…" : "Choose cover image file to upload"}</span>
+                <div className="mb-2 grid h-12 w-12 place-items-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+                  <Upload size={20} />
+                </div>
+                <span className="text-sm font-bold text-ink">
+                  {uploadingImage ? "Uploading to ImgBB…" : "Click to select cover image"}
+                </span>
+                <span className="text-xs text-ink-faint mt-1">PNG, JPG, WebP up to 10MB</span>
                 <input
                   id="b-image-file"
                   type="file"
@@ -194,76 +213,81 @@ export default function AddBookPage() {
                 />
               </label>
 
-              <div className="text-xs text-ink-soft">Or paste an existing image URL:</div>
-              <input
-                type="url"
-                className="input text-xs"
-                placeholder="https://images.unsplash.com/..."
-                value={imageUrl}
-                onChange={(e) => {
-                  setImageUrl(e.target.value);
-                  setImagePreview(e.target.value);
-                }}
-              />
+              <div>
+                <span className="text-xs font-semibold text-ink-soft">Or paste direct image URL:</span>
+                <input
+                  type="url"
+                  className="input text-xs mt-1"
+                  placeholder="https://images.unsplash.com/..."
+                  value={imageUrl}
+                  onChange={(e) => {
+                    setImageUrl(e.target.value);
+                    setImagePreview(e.target.value);
+                  }}
+                />
+              </div>
             </div>
 
             {/* Preview Box */}
-            <div className="relative aspect-[3/4] w-24 overflow-hidden rounded-lg border border-line bg-line/30 flex items-center justify-center">
-              {imagePreview ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={imagePreview} alt="Cover preview" className="h-full w-full object-cover" />
-              ) : (
-                <ImageIcon size={24} className="text-ink-soft/50" />
-              )}
-              {uploadingImage && (
-                <div className="absolute inset-0 grid place-items-center bg-black/40 text-xs text-white">
-                  Uploading…
-                </div>
-              )}
+            <div className="flex flex-col items-center justify-center">
+              <div className="relative aspect-[3/4] w-32 overflow-hidden rounded-2xl border border-line bg-line/30 flex items-center justify-center shadow-md">
+                {imagePreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={imagePreview} alt="Cover preview" className="h-full w-full object-cover" />
+                ) : (
+                  <ImageIcon size={32} className="text-ink-faint" />
+                )}
+                {uploadingImage && (
+                  <div className="absolute inset-0 grid place-items-center bg-black/60 text-xs font-bold text-white">
+                    Uploading…
+                  </div>
+                )}
+              </div>
+              <span className="text-[11px] font-bold text-ink-faint mt-2">Cover Preview</span>
             </div>
           </div>
         </div>
 
         {/* Description */}
         <div>
-          <label className="label" htmlFor="b-desc">Description</label>
+          <label className="label" htmlFor="b-desc">Synopsis / Overview</label>
           <textarea
             id="b-desc"
             rows={4}
-            className="input"
-            placeholder="A short synopsis or background on this book…"
+            className="input font-reading"
+            placeholder="Write a concise description or quote that gives readers a preview of the book…"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
           />
         </div>
 
-        {/* Read-only User Name and Email */}
-        <div className="grid gap-6 sm:grid-cols-2 pt-2 border-t border-line">
+        {/* Contributor Read-only Credentials */}
+        <div className="grid gap-6 sm:grid-cols-2 pt-6 border-t border-line">
           <div>
-            <label className="label" htmlFor="b-username">Added by (User Name)</label>
+            <label className="label" htmlFor="b-username">Contributor Name</label>
             <input
               id="b-username"
               type="text"
-              className="input text-ink-soft"
+              className="input text-ink-soft cursor-not-allowed bg-paper"
               value={session.user.name || "Reader"}
               readOnly
             />
           </div>
           <div>
-            <label className="label" htmlFor="b-useremail">User Email</label>
+            <label className="label" htmlFor="b-useremail">Contributor Email</label>
             <input
               id="b-useremail"
               type="email"
-              className="input text-ink-soft"
+              className="input text-ink-soft cursor-not-allowed bg-paper"
               value={session.user.email}
               readOnly
             />
           </div>
         </div>
 
-        {/* Submit */}
-        <div className="flex justify-end gap-3 pt-4">
+        {/* Action Buttons */}
+        <div className="flex items-center justify-end gap-3 pt-4">
           <button
             type="button"
             className="btn btn-outline"
@@ -273,10 +297,11 @@ export default function AddBookPage() {
           </button>
           <button
             type="submit"
-            className="btn btn-primary"
+            className="btn btn-primary h-12 px-8 font-bold shadow-lg shadow-blue-600/25"
             disabled={submitting || uploadingImage}
           >
-            {submitting ? "Adding Book…" : "Save Book to Library"}
+            <Sparkles size={16} />
+            {submitting ? "Adding to Library…" : "Publish Volume to Shelf"}
           </button>
         </div>
       </form>

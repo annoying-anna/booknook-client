@@ -7,7 +7,7 @@ import type { Book } from "@/lib/types";
 import BookCard from "@/components/BookCard";
 import Loader from "@/components/Loader";
 import { EmptyState } from "@/components/tables";
-import { Search } from "lucide-react";
+import { Search, Sparkles, SlidersHorizontal, BookOpen } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
 
 const ALL_CATEGORIES = ["All", ...Object.keys(CATEGORIES)];
@@ -58,7 +58,8 @@ function BooksContent() {
 
   const filtered = useMemo(() => {
     return books.filter((b) => {
-      const matchCat = selectedCategory === "All" || b.category.toLowerCase() === selectedCategory.toLowerCase();
+      const matchCat =
+        selectedCategory === "All" || b.category.toLowerCase() === selectedCategory.toLowerCase();
       const matchQuery =
         !searchQuery.trim() ||
         b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -69,41 +70,56 @@ function BooksContent() {
 
   return (
     <div className="wrap section space-y-10">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">All Books</h1>
-        <p className="mt-2 font-reading text-lg text-ink-soft">
-          Explore our entire library catalog across fiction, science, history, children, and more.
-        </p>
+      {/* Top Header */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between border-b border-line pb-8">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 px-3 py-1 text-xs font-bold">
+            <BookOpen size={14} /> Community Collection
+          </div>
+          <h1 className="text-3xl font-extrabold sm:text-5xl tracking-tight text-ink">
+            Library Catalog
+          </h1>
+          <p className="font-reading text-base text-ink-soft max-w-xl">
+            Browse our complete shelf of community-curated editions. Pick a title to check details or borrow immediately.
+          </p>
+        </div>
+
+        <div className="text-sm font-semibold text-ink-soft">
+          Showing <span className="font-bold text-ink">{filtered.length}</span> of {books.length} volumes
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between rounded-2xl border border-line bg-surface p-4 shadow-sm">
         {/* Category Pills */}
         <div className="flex flex-wrap items-center gap-2">
-          {ALL_CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => handleCategorySelect(cat)}
-              className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-colors ${
-                selectedCategory.toLowerCase() === cat.toLowerCase()
-                  ? "bg-brand text-on-brand"
-                  : "border border-line bg-surface text-ink-soft hover:text-ink hover:border-brand"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+          {ALL_CATEGORIES.map((cat) => {
+            const isSelected = selectedCategory.toLowerCase() === cat.toLowerCase();
+            return (
+              <button
+                key={cat}
+                onClick={() => handleCategorySelect(cat)}
+                className={`rounded-xl px-4 py-2 text-xs font-bold transition-all shadow-sm ${
+                  isSelected
+                    ? "bg-blue-600 text-white shadow-blue-500/25"
+                    : "border border-line bg-surface text-ink-soft hover:text-ink hover:border-brand hover:bg-paper"
+                }`}
+              >
+                {cat}
+              </button>
+            );
+          })}
         </div>
 
         {/* Search Input */}
-        <div className="relative w-full md:w-72">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-soft" />
+        <div className="relative w-full lg:w-80">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint" />
           <input
             type="search"
-            placeholder="Search by title or author…"
+            placeholder="Search by title, author, keyword…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="input pl-10 h-10 text-xs"
+            className="input pl-10 text-xs h-11"
           />
         </div>
       </div>
@@ -119,14 +135,14 @@ function BooksContent() {
         </div>
       ) : (
         <EmptyState
-          title="No books found"
+          title="No books matched your criteria"
           text={
             searchQuery
-              ? `No books matching "${searchQuery}" in ${selectedCategory} category.`
-              : "No books available in this category yet."
+              ? `We couldn't find any titles matching "${searchQuery}" in ${selectedCategory}.`
+              : `There are currently no titles cataloged in ${selectedCategory}.`
           }
           href="/books"
-          action="Show all books"
+          action="Reset all filters"
         />
       )}
     </div>

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { AuthShell, GoogleButton, AuthLink, PasswordRules, isPasswordValid } from "@/components/auth";
 import Loader from "@/components/Loader";
+import { ArrowRight, Image as ImageIcon, Lock, Mail, User } from "lucide-react";
 
 function RegisterForm() {
   const router = useRouter();
@@ -18,6 +19,7 @@ function RegisterForm() {
   const [photoUrl, setPhotoUrl] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -28,7 +30,7 @@ function RegisterForm() {
   }, [session, isPending, redirect, router]);
 
   if (isPending) {
-    return <Loader label="Checking session" />;
+    return <Loader label="Verifying session" />;
   }
 
   async function handleRegister(e: React.FormEvent) {
@@ -61,7 +63,7 @@ function RegisterForm() {
         setError(msg);
         toast.error(msg);
       } else {
-        toast.success("Account registered successfully! Please log in.");
+        toast.success("Account created successfully! Please sign in.");
         const target = redirect !== "/" ? `/login?redirect=${encodeURIComponent(redirect)}` : "/login";
         router.push(target);
       }
@@ -76,13 +78,19 @@ function RegisterForm() {
 
   async function handleGoogle() {
     setError("");
+    setGoogleLoading(true);
     try {
-      await authClient.signIn.social({
+      const res = await authClient.signIn.social({
         provider: "google",
         callbackURL: redirect,
       });
-    } catch {
-      toast.error("Google registration failed. Please try again.");
+      if (res?.data?.url) {
+        window.location.href = res.data.url;
+      }
+    } catch (err: unknown) {
+      const msg = (err as Error)?.message || "Google registration could not be initiated.";
+      toast.error(msg);
+      setGoogleLoading(false);
     }
   }
 
@@ -90,92 +98,117 @@ function RegisterForm() {
 
   return (
     <AuthShell
-      title="Create an account"
-      subtitle="Join the BookNook reading community today."
+      title="Create your account"
+      subtitle="Join BookNook today to borrow, review, and contribute to the library."
       footer={
         <>
-          Already have an account?{" "}
+          Already have a member account?{" "}
           <AuthLink href={redirect !== "/" ? `/login?redirect=${encodeURIComponent(redirect)}` : "/login"}>
-            Sign in
+            Sign in here
           </AuthLink>
         </>
       }
     >
-      {error && <div className="mb-4 rounded-lg bg-danger/10 p-3 text-sm text-danger">{error}</div>}
+      {error && (
+        <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 dark:border-rose-900/50 dark:bg-rose-950/40 p-4 text-xs font-semibold text-rose-700 dark:text-rose-300">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleRegister} className="space-y-4">
         <div>
-          <label className="label" htmlFor="reg-name">Full Name</label>
-          <input
-            id="reg-name"
-            type="text"
-            className="input"
-            placeholder="Jane Doe"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            autoComplete="name"
-          />
+          <label className="label" htmlFor="reg-name">
+            Full Name
+          </label>
+          <div className="relative">
+            <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint" />
+            <input
+              id="reg-name"
+              type="text"
+              className="input pl-10"
+              placeholder="Jane Austen"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              autoComplete="name"
+            />
+          </div>
         </div>
 
         <div>
-          <label className="label" htmlFor="reg-email">Email Address</label>
-          <input
-            id="reg-email"
-            type="email"
-            className="input"
-            placeholder="jane@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-          />
+          <label className="label" htmlFor="reg-email">
+            Email Address
+          </label>
+          <div className="relative">
+            <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint" />
+            <input
+              id="reg-email"
+              type="email"
+              className="input pl-10"
+              placeholder="jane@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+            />
+          </div>
         </div>
 
         <div>
-          <label className="label" htmlFor="reg-photo">Photo URL (optional)</label>
-          <input
-            id="reg-photo"
-            type="url"
-            className="input"
-            placeholder="https://images.unsplash.com/photo-..."
-            value={photoUrl}
-            onChange={(e) => setPhotoUrl(e.target.value)}
-          />
+          <label className="label" htmlFor="reg-photo">
+            Photo URL (optional)
+          </label>
+          <div className="relative">
+            <ImageIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint" />
+            <input
+              id="reg-photo"
+              type="url"
+              className="input pl-10 text-xs"
+              placeholder="https://images.unsplash.com/photo-..."
+              value={photoUrl}
+              onChange={(e) => setPhotoUrl(e.target.value)}
+            />
+          </div>
         </div>
 
         <div>
-          <label className="label" htmlFor="reg-password">Password</label>
-          <input
-            id="reg-password"
-            type="password"
-            className="input"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="new-password"
-          />
+          <label className="label" htmlFor="reg-password">
+            Password
+          </label>
+          <div className="relative">
+            <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint" />
+            <input
+              id="reg-password"
+              type="password"
+              className="input pl-10"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="new-password"
+            />
+          </div>
           <PasswordRules password={password} />
         </div>
 
         <button
           type="submit"
-          className="btn btn-primary w-full mt-2"
-          disabled={loading || !valid}
+          className="btn btn-primary w-full h-12 text-sm font-bold shadow-lg shadow-blue-600/25 mt-2"
+          disabled={loading || !valid || googleLoading}
         >
-          {loading ? "Creating account…" : "Register"}
+          {loading ? "Creating membership…" : "Create Member Account"}
+          {!loading && <ArrowRight size={16} />}
         </button>
       </form>
 
-      <GoogleButton onClick={handleGoogle} label="Sign up with Google" />
+      <GoogleButton onClick={handleGoogle} label="Sign up with Google" loading={googleLoading} />
     </AuthShell>
   );
 }
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<Loader label="Loading register" />}>
+    <Suspense fallback={<Loader label="Loading registration form" />}>
       <RegisterForm />
     </Suspense>
   );
