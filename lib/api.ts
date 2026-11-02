@@ -1,63 +1,33 @@
 import axios from "axios";
+import { authClient } from "@/lib/auth-client";
+import type { Book, Borrow } from "@/lib/types";
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
-export const IMGBB_API_KEY = process.env.NEXT_PUBLIC_IMGBB_API_KEY || "";
+export type { Book, Borrow } from "@/lib/types";
 
-export interface Book {
-  _id: string;
-  title: string;
-  author: string;
-  category: "Fiction" | "Science" | "History" | "Kids" | "Others" | string;
-  image: string;
-  description: string;
-  addedByName?: string;
-  addedByEmail?: string;
-  totalCopies: number;
-  createdAt?: string;
-}
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_SERVER_URL ||
+  "https://booknook-server-ashy.vercel.app";
 
-export interface Borrow {
-  _id: string;
-  bookId: string;
-  bookTitle: string;
-  bookImage: string;
-  userEmail: string;
-  userName: string;
-  borrowDate: string;
-  returnDate: string;
-  borrowedAt?: string;
-}
+export const IMGBB_API_KEY =
+  process.env.NEXT_PUBLIC_IMGBB_API_KEY || "5f4837799b0f09a4262a68084a5bf8d6";
 
 /**
- * Obtain or reuse a valid JWT token for the user's email
+ * Get the Authorization header from BetterAuth JWT token
  */
-export async function getJwtToken(email: string): Promise<string> {
-  if (typeof window === "undefined") return "";
-
-  const stored = localStorage.getItem(`booknook_jwt_${email}`);
-  if (stored) {
-    try {
-      const payload = JSON.parse(atob(stored.split(".")[1]));
-      if (payload.exp && payload.exp * 1000 > Date.now()) {
-        return stored;
-      }
-    } catch {
-      // invalid token, refetch
-    }
-  }
+export async function getAuthHeader(): Promise<Record<string, string>> {
+  if (typeof window === "undefined") return {};
 
   try {
-    const res = await axios.post(`${API_BASE_URL}/jwt`, { email });
-    const token = res.data.token;
+    const res = await authClient.token();
+    const token = res?.data?.token;
     if (token) {
-      localStorage.setItem(`booknook_jwt_${email}`, token);
-      localStorage.setItem("booknook_current_token", token);
-      return token;
+      return { Authorization: `Bearer ${token}` };
     }
   } catch (err) {
-    console.error("Failed to obtain JWT token:", err);
+    console.error("Failed to retrieve BetterAuth token:", err);
   }
-  return "";
+  return {};
 }
 
 /**
@@ -80,18 +50,17 @@ export async function uploadToImgBB(file: File): Promise<string> {
 }
 
 /**
- * Fetch all books with optional filters
+ * Fetch books with optional category, sort, limit, search filters
  */
-export async function fetchBooks(params?: { category?: string; email?: string; limit?: number }): Promise<Book[]> {
-  const res = await axios.get(`${API_BASE_URL}/books`, { params });
-  return res.data;
-}
-
-/**
- * Fetch latest 6 new arrivals
- */
-export async function fetchNewArrivals(): Promise<Book[]> {
-  const res = await axios.get(`${API_BASE_URL}/books/new-arrivals`);
+export async function fetchBooks(params?: {
+  category?: string;
+  sort?: string;
+  limit?: number;
+  search?: string;
+  mine?: boolean;
+}): Promise<Book[]> {
+  const headers = await getAuthHeader();
+  const res = await axios.get(`${API_BASE_URL}/books`, { params, headers });
   return res.data;
 }
 
@@ -99,93 +68,74 @@ export async function fetchNewArrivals(): Promise<Book[]> {
  * Fetch a single book by ID
  */
 export async function fetchBookById(id: string): Promise<Book> {
-  const res = await axios.get(`${API_BASE_URL}/books/${id}`);
+  const headers = await getAuthHeader();
+  const res = await axios.get(`${API_BASE_URL}/books/${id}`, { headers });
   return res.data;
 }
 
 /**
  * Create a new book
  */
-export async function createBook(bookData: Partial<Book>, userEmail: string): Promise<{ insertedId: string; message: string }> {
-  const token = await getJwtToken(userEmail);
-  const res = await axios.post(`${API_BASE_URL}/books`, bookData, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export async function createBook(bookData: {
+  title: string;
+  author: string;
+  category: string;
+  image: string;
+  description: string;
+  totalCopies: number;
+}): Promise<{ insertedId: string; message: string }> {
+  const headers = await getAuthHeader();
+  const res = await axios.post(`${API_BASE_URL}/books`, bookData, { headers });
   return res.data;
 }
 
 /**
- * Update an existing book
+ * Update an existing book (owner only)
  */
-export async function updateBook(id: string, updates: Partial<Book>, userEmail: string): Promise<{ modifiedCount: number; message: string }> {
-  const token = await getJwtToken(userEmail);
-  const res = await axios.patch(`${API_BASE_URL}/books/${id}`, updates, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export async function updateBook(
+  id: string,
+  updates: Partial<Book>
+): Promise<{ modifiedCount: number; message: string }> {
+  const headers = await getAuthHeader();
+  const res = await axios.patch(`${API_BASE_URL}/books/${id}`, updates, { headers });
   return res.data;
 }
 
 /**
- * Delete a book
+ * Delete a book (owner only)
  */
-export async function deleteBook(id: string, userEmail: string): Promise<{ deletedCount: number; message: string }> {
-  const token = await getJwtToken(userEmail);
-  const res = await axios.delete(`${API_BASE_URL}/books/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export async function deleteBook(id: string): Promise<{ deletedCount: number; message: string }> {
+  const headers = await getAuthHeader();
+  const res = await axios.delete(`${API_BASE_URL}/books/${id}`, { headers });
   return res.data;
 }
 
 /**
- * Borrow a book
+ * Borrow a book (atomic decrement on server)
  */
 export async function borrowBook(borrowData: {
   bookId: string;
-  bookTitle: string;
-  bookImage: string;
-  userEmail: string;
-  userName: string;
-  borrowDate: string;
   returnDate: string;
 }): Promise<{ insertedId: string; message: string }> {
-  const token = await getJwtToken(borrowData.userEmail);
-  const res = await axios.post(`${API_BASE_URL}/borrows`, borrowData, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const headers = await getAuthHeader();
+  const res = await axios.post(`${API_BASE_URL}/borrows`, borrowData, { headers });
   return res.data;
 }
 
 /**
- * Get borrows for the logged-in user
+ * Fetch borrows for the authenticated user
  */
-export async function fetchMyBorrows(userEmail: string): Promise<Borrow[]> {
-  const token = await getJwtToken(userEmail);
-  const res = await axios.get(`${API_BASE_URL}/borrows`, {
-    params: { email: userEmail },
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export async function fetchMyBorrows(): Promise<Borrow[]> {
+  const headers = await getAuthHeader();
+  const res = await axios.get(`${API_BASE_URL}/borrows`, { headers });
   return res.data;
 }
 
 /**
- * Return a borrowed book
+ * Return a borrowed book (increments copies on server)
  */
-export async function returnBorrow(borrowId: string, userEmail: string): Promise<{ message: string }> {
-  const token = await getJwtToken(userEmail);
-  const res = await axios.delete(`${API_BASE_URL}/borrows/${borrowId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export async function returnBorrow(borrowId: string): Promise<{ message: string }> {
+  const headers = await getAuthHeader();
+  const res = await axios.delete(`${API_BASE_URL}/borrows/${borrowId}`, { headers });
   return res.data;
 }

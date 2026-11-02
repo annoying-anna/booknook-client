@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
+import { jwt } from "better-auth/plugins/jwt";
 import { MongoClient } from "mongodb";
 
 const uri = process.env.MONGODB_URI || "";
@@ -34,6 +35,27 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     },
   },
+  plugins: [
+    jwt({
+      jwt: {
+        definePayload: async (session) => {
+          return {
+            id: session.user.id,
+            email: session.user.email,
+            name: session.user.name,
+          };
+        },
+      },
+    }),
+  ],
+  trustedOrigins: [
+    "http://localhost:3000",
+    "http://localhost:5000",
+    "https://booknook-client-tau.vercel.app",
+    "https://booknook-server-ashy.vercel.app",
+    process.env.NEXT_PUBLIC_APP_URL || "",
+    process.env.BETTER_AUTH_URL || "",
+  ].filter(Boolean),
   secret: process.env.BETTER_AUTH_SECRET || "booknook_better_auth_secret_key_super_secret_60marks",
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
 });
