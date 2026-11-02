@@ -1,42 +1,96 @@
 @import "tailwindcss";
-
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ───────── BookNook design tokens ─────────
+   Idea: cloth-bound book spines. Every category owns a spine colour,
+   reused on cards, chips and the home shelf. */
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --primary: #059669;
-  --primary-foreground: #ffffff;
-}
+  --paper: #f5f6f3;
+  --surface: #ffffff;
+  --ink: #142033;
+  --ink-soft: #505b6b;
+  --line: #dadfd8;
+  --brand: #1b2f4e;
+  --on-brand: #ffffff;
+  --accent: #e3a82b;
+  --on-accent: #241a00;
+  --danger: #b3261e;
+  --ok: #2b7a4b;
 
+  --spine-fiction: #7a2433;
+  --spine-science: #0f6466;
+  --spine-history: #a8691a;
+  --spine-kids: #d4533b;
+  --spine-others: #475467;
+  color-scheme: light;
+}
 .dark {
-  --background: #090d16;
-  --foreground: #f1f5f9;
-  --card: #111827;
-  --card-foreground: #f1f5f9;
-  --primary: #10b981;
-  --primary-foreground: #ffffff;
+  --paper: #0c1420;
+  --surface: #142030;
+  --ink: #eceae3;
+  --ink-soft: #9da9ba;
+  --line: #24344a;
+  --brand: #9dbdeb;
+  --on-brand: #0c1420;
+  --accent: #edb733;
+  --on-accent: #1e1500;
+  --danger: #f2776f;
+  --ok: #6cc38d;
+  color-scheme: dark;
 }
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  transition: background-color 0.2s ease, color 0.2s ease;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-on-brand: var(--on-brand);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-danger: var(--danger);
+  --color-ok: var(--ok);
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-reading: var(--font-literata), Georgia, serif;
 }
 
-/* Swiper custom styling */
-.swiper-pagination-bullet-active {
-  background-color: #059669 !important;
-  width: 24px !important;
-  border-radius: 9999px !important;
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { @apply bg-paper font-display text-ink antialiased; }
+  h1, h2, h3 { text-wrap: balance; letter-spacing: -0.01em; }
+  :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 }
 
-.swiper-button-next,
-.swiper-button-prev {
-  color: #059669 !important;
+@layer components {
+  .wrap { @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8; }
+  .section { @apply py-16 sm:py-20; }
+
+  /* One button system, used on every page */
+  .btn { @apply inline-flex h-11 items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-primary { @apply bg-brand text-on-brand hover:opacity-90; }
+  .btn-accent { @apply bg-accent text-on-accent hover:brightness-95; }
+  .btn-outline { @apply border border-line bg-surface text-ink hover:border-brand; }
+  .btn-danger { @apply bg-danger text-white hover:opacity-90; }
+
+  /* Form fields */
+  .label { @apply mb-1.5 block text-sm font-medium; }
+  .input { @apply h-11 w-full rounded-lg border border-line bg-surface px-3.5 text-sm placeholder:text-ink-soft/70 focus:border-brand focus:outline-none read-only:bg-paper read-only:text-ink-soft; }
+  textarea.input { @apply h-auto py-3; }
+  .field-error { @apply mt-1.5 text-sm text-danger; }
+}
+
+/* Motion only in response to an action, plus the loader */
+@keyframes pop { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
+.animate-pop { animation: pop 0.18s ease-out; }
+@keyframes lift { 0%, 100% { transform: scaleY(0.4); } 50% { transform: scaleY(1); } }
+.spine-load > span { transform-origin: bottom; animation: lift 1s ease-in-out infinite; }
+
+/* Swiper (hero) */
+.hero-swiper .swiper-pagination { bottom: 20px !important; }
+.hero-swiper .swiper-pagination-bullet { width: 8px; height: 8px; background: #fff; opacity: 0.5; transition: width 0.2s; }
+.hero-swiper .swiper-pagination-bullet-active { width: 28px; border-radius: 4px; background: var(--accent); opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
