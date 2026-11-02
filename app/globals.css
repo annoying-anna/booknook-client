@@ -1,96 +1,199 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ───────── BookNook design tokens ─────────
-   Idea: cloth-bound book spines. Every category owns a spine colour,
-   reused on cards, chips and the home shelf. */
+/* ───────── BookNook Modern Design Tokens ───────── */
 :root {
-  --paper: #f5f6f3;
+  --paper: #f8fafc;
   --surface: #ffffff;
-  --ink: #142033;
-  --ink-soft: #505b6b;
-  --line: #dadfd8;
-  --brand: #1b2f4e;
-  --on-brand: #ffffff;
-  --accent: #e3a82b;
-  --on-accent: #241a00;
-  --danger: #b3261e;
-  --ok: #2b7a4b;
+  --surface-raised: #ffffff;
+  --ink: #0f172a;
+  --ink-soft: #475569;
+  --ink-faint: #94a3b8;
+  --line: #e2e8f0;
+  --line-strong: #cbd5e1;
 
-  --spine-fiction: #7a2433;
-  --spine-science: #0f6466;
-  --spine-history: #a8691a;
-  --spine-kids: #d4533b;
-  --spine-others: #475467;
+  --brand: #1e3a8a;
+  --brand-hover: #1e40af;
+  --brand-light: #eff6ff;
+  --on-brand: #ffffff;
+
+  --accent: #f59e0b;
+  --accent-hover: #d97706;
+  --on-accent: #ffffff;
+
+  --danger: #ef4444;
+  --danger-light: #fef2f2;
+  --ok: #10b981;
+  --ok-light: #ecfdf5;
+
+  /* Category Jewel Spines */
+  --spine-fiction: #9333ea;
+  --spine-science: #0284c7;
+  --spine-history: #d97706;
+  --spine-kids: #ea580c;
+  --spine-others: #059669;
+
   color-scheme: light;
 }
+
 .dark {
-  --paper: #0c1420;
-  --surface: #142030;
-  --ink: #eceae3;
-  --ink-soft: #9da9ba;
-  --line: #24344a;
-  --brand: #9dbdeb;
-  --on-brand: #0c1420;
-  --accent: #edb733;
-  --on-accent: #1e1500;
-  --danger: #f2776f;
-  --ok: #6cc38d;
+  --paper: #0b0f19;
+  --surface: #111827;
+  --surface-raised: #1e293b;
+  --ink: #f8fafc;
+  --ink-soft: #94a3b8;
+  --ink-faint: #64748b;
+  --line: #1e293b;
+  --line-strong: #334155;
+
+  --brand: #3b82f6;
+  --brand-hover: #60a5fa;
+  --brand-light: #1e293b;
+  --on-brand: #ffffff;
+
+  --accent: #fbbf24;
+  --accent-hover: #f59e0b;
+  --on-accent: #0f172a;
+
+  --danger: #f87171;
+  --danger-light: #450a0a;
+  --ok: #34d399;
+  --ok-light: #064e3b;
+
+  --spine-fiction: #a855f7;
+  --spine-science: #38bdf8;
+  --spine-history: #f59e0b;
+  --spine-kids: #fb923c;
+  --spine-others: #10b981;
+
   color-scheme: dark;
 }
 
 @theme inline {
   --color-paper: var(--paper);
   --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
   --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
   --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-light: var(--brand-light);
   --color-on-brand: var(--on-brand);
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
   --color-on-accent: var(--on-accent);
   --color-danger: var(--danger);
+  --color-danger-light: var(--danger-light);
   --color-ok: var(--ok);
-  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --color-ok-light: var(--ok-light);
+  --font-display: var(--font-bricolage), system-ui, -apple-system, sans-serif;
   --font-reading: var(--font-literata), Georgia, serif;
 }
 
 @layer base {
-  html { scroll-behavior: smooth; }
-  body { @apply bg-paper font-display text-ink antialiased; }
-  h1, h2, h3 { text-wrap: balance; letter-spacing: -0.01em; }
-  :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-display);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
 }
 
 @layer components {
-  .wrap { @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8; }
-  .section { @apply py-16 sm:py-20; }
+  .wrap {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .section {
+    @apply py-14 sm:py-20;
+  }
 
-  /* One button system, used on every page */
-  .btn { @apply inline-flex h-11 items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50; }
-  .btn-primary { @apply bg-brand text-on-brand hover:opacity-90; }
-  .btn-accent { @apply bg-accent text-on-accent hover:brightness-95; }
-  .btn-outline { @apply border border-line bg-surface text-ink hover:border-brand; }
-  .btn-danger { @apply bg-danger text-white hover:opacity-90; }
+  /* Buttons */
+  .btn {
+    @apply inline-flex h-11 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 shadow-sm;
+  }
+  .btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/25;
+  }
+  .btn-accent {
+    @apply bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 shadow-amber-500/20 hover:shadow-md hover:shadow-amber-500/25;
+  }
+  .btn-outline {
+    @apply border border-line bg-surface text-ink hover:border-brand hover:bg-paper dark:hover:bg-surface-raised;
+  }
+  .btn-danger {
+    @apply bg-rose-600 text-white hover:bg-rose-700 shadow-rose-500/20;
+  }
 
-  /* Form fields */
-  .label { @apply mb-1.5 block text-sm font-medium; }
-  .input { @apply h-11 w-full rounded-lg border border-line bg-surface px-3.5 text-sm placeholder:text-ink-soft/70 focus:border-brand focus:outline-none read-only:bg-paper read-only:text-ink-soft; }
-  textarea.input { @apply h-auto py-3; }
-  .field-error { @apply mt-1.5 text-sm text-danger; }
+  /* Form inputs */
+  .label {
+    @apply mb-2 block text-xs font-bold uppercase tracking-wider text-ink-soft;
+  }
+  .input {
+    @apply h-11 w-full rounded-xl border border-line bg-surface px-4 text-sm text-ink transition-all placeholder:text-ink-faint focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 read-only:bg-paper read-only:text-ink-soft;
+  }
+  textarea.input {
+    @apply h-auto py-3;
+  }
+  .field-error {
+    @apply mt-1.5 text-xs font-medium text-danger;
+  }
 }
 
-/* Motion only in response to an action, plus the loader */
-@keyframes pop { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
-.animate-pop { animation: pop 0.18s ease-out; }
-@keyframes lift { 0%, 100% { transform: scaleY(0.4); } 50% { transform: scaleY(1); } }
-.spine-load > span { transform-origin: bottom; animation: lift 1s ease-in-out infinite; }
+/* Animations */
+@keyframes pop {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.animate-pop {
+  animation: pop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-/* Swiper (hero) */
-.hero-swiper .swiper-pagination { bottom: 20px !important; }
-.hero-swiper .swiper-pagination-bullet { width: 8px; height: 8px; background: #fff; opacity: 0.5; transition: width 0.2s; }
-.hero-swiper .swiper-pagination-bullet-active { width: 28px; border-radius: 4px; background: var(--accent); opacity: 1; }
+@keyframes spinePulse {
+  0%, 100% { transform: scaleY(0.4); opacity: 0.6; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+.spine-load > span {
+  transform-origin: bottom;
+  animation: spinePulse 1.2s ease-in-out infinite;
+}
+
+/* Swiper custom styling */
+.hero-swiper .swiper-pagination {
+  bottom: 24px !important;
+}
+.hero-swiper .swiper-pagination-bullet {
+  width: 10px;
+  height: 10px;
+  background: #ffffff;
+  opacity: 0.4;
+  transition: all 0.3s ease;
+  border-radius: 9999px;
+}
+.hero-swiper .swiper-pagination-bullet-active {
+  width: 32px;
+  border-radius: 9999px;
+  background: #f59e0b;
+  opacity: 1;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
