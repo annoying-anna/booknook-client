@@ -3,46 +3,39 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useSession, signOut } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { fetchBooks, fetchMyBorrows } from "@/lib/api";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import {
-  User,
-  Mail,
-  ShieldCheck,
-  BookOpen,
-  Bookmark,
-  PlusCircle,
-  LogOut,
-  Calendar,
-} from "lucide-react";
-import toast from "react-hot-toast";
+import Loader from "@/components/Loader";
+import { toast } from "sonner";
+import { BookOpen, Bookmark, LogOut, Plus } from "lucide-react";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { data: session, isPending: sessionLoading } = useSession();
+  const { data: session, isPending: sessionLoading } = authClient.useSession();
 
   const [addedCount, setAddedCount] = useState<number>(0);
   const [borrowedCount, setBorrowedCount] = useState<number>(0);
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
-    document.title = "BookNook | My Profile";
+    document.title = "BookNook | Profile";
     if (!sessionLoading && !session?.user) {
-      toast.error("Please login to view your profile!");
-      router.push("/login?callbackUrl=/profile");
-      return;
+      router.push(`/login?redirect=${encodeURIComponent("/profile")}`);
     }
+  }, [session, sessionLoading, router]);
+
+  useEffect(() => {
+    if (!session?.user?.email) return;
 
     async function loadStats() {
-      if (!session?.user?.email) return;
       try {
         setLoadingStats(true);
-        const [myBooks, myBorrows] = await Promise.all([
-          fetchBooks({ email: session.user.email }).catch(() => []),
-          fetchMyBorrows(session.user.email).catch(() => []),
+        const [allBooks, myBorrows] = await Promise.all([
+          fetchBooks({ mine: true }).catch(() => []),
+          fetchMyBorrows().catch(() => []),
         ]);
-        setAddedCount(myBooks.length);
+        const myAdded = allBooks.filter((b) => b.userEmail === session?.user?.email);
+        setAddedCount(myAdded.length);
         setBorrowedCount(myBorrows.length);
       } catch (err) {
         console.error("Failed to load user stats:", err);
@@ -51,155 +44,111 @@ export default function ProfilePage() {
       }
     }
 
-    if (session?.user) {
-      loadStats();
-    }
-  }, [session, sessionLoading, router]);
+    loadStats();
+  }, [session]);
 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      toast.success("Successfully logged out!");
-      router.push("/login");
-    } catch {
-      toast.error("Failed to log out.");
-    }
-  };
-
-  if (sessionLoading) {
-    return <LoadingSpinner text="Loading your profile..." />;
+  if (sessionLoading || !session?.user) {
+    return <Loader label="Checking session" />;
   }
 
-  if (!session?.user) return null;
+  const user = session.user;
+
+  async function handleLogout() {
+    try {
+      await authClient.signOut();
+      toast.success("Logged out successfully.");
+      router.push("/");
+      router.refresh();
+    } catch {
+      toast.error("Failed to sign out.");
+    }
+  }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 space-y-8 pb-16">
-      {/* Profile Header Card */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl p-8 sm:p-10">
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
-          {/* Avatar */}
-          <div className="relative">
-            {session.user.image ? (
+    <div className="wrap section max-w-4xl space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">My Profile</h1>
+        <p className="mt-2 font-reading text-lg text-ink-soft">
+          Your BookNook reader account, library contributions, and active borrows.
+        </p>
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-line bg-surface">
+        <div className="p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6 border-b border-line">
+          <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-line bg-brand text-2xl font-bold text-on-brand">
+            {user.image ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={session.user.image}
-                alt={session.user.name || "User Avatar"}
-                className="w-24 h-24 rounded-3xl object-cover border-4 border-emerald-500/30 shadow-md"
-              />
+              <img src={user.image} alt={user.name} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
             ) : (
-              <div className="w-24 h-24 rounded-3xl bg-emerald-600 text-white font-extrabold text-3xl flex items-center justify-center shadow-md">
-                {session.user.name?.charAt(0).toUpperCase() || "U"}
-              </div>
+              user.name?.[0]?.toUpperCase()
             )}
-            <div className="absolute -bottom-2 -right-2 p-1.5 rounded-full bg-emerald-500 text-white shadow-md">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
           </div>
-
-          {/* User Info */}
-          <div className="flex-1 space-y-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              {session.user.name || "Member"}
-            </h1>
-            <p className="flex items-center justify-center sm:justify-start gap-2 text-sm text-slate-500 dark:text-slate-400">
-              <Mail className="w-4 h-4 text-emerald-500" />
-              <span>{session.user.email}</span>
-            </p>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
-              <Calendar className="w-3.5 h-3.5" />
-              <span>Active BookNook Reader</span>
-            </div>
+          <div className="text-center sm:text-left flex-1">
+            <h2 className="text-2xl font-bold">{user.name}</h2>
+            <p className="font-reading text-ink-soft">{user.email}</p>
+            <span className="mt-2 inline-flex items-center rounded-md bg-ok/10 px-2.5 py-0.5 text-xs font-semibold text-ok">
+              Active Member
+            </span>
           </div>
-
-          {/* Logout Action */}
-          <div>
-            <button
-              onClick={handleLogout}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Sign Out</span>
-            </button>
-          </div>
+          <button onClick={handleLogout} className="btn btn-outline text-danger hover:border-danger">
+            <LogOut size={16} /> Sign Out
+          </button>
         </div>
 
-        {/* User Stats Grid */}
-        <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Books Contributed
-              </p>
-              <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                {loadingStats ? "..." : addedCount}
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-              <BookOpen className="w-6 h-6" />
-            </div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-line bg-paper/50">
+          <div className="p-6 text-center sm:text-left">
+            <span className="flex items-center justify-center sm:justify-start gap-2 text-sm text-ink-soft">
+              <BookOpen size={16} /> Books Contributed
+            </span>
+            <p className="mt-2 text-3xl font-bold">
+              {loadingStats ? "…" : addedCount}
+            </p>
+            <Link href="/my-books" className="mt-3 inline-block text-xs font-semibold text-brand underline-offset-4 hover:underline">
+              View contributed titles →
+            </Link>
           </div>
 
-          <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Active Borrows
-              </p>
-              <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                {loadingStats ? "..." : borrowedCount}
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <Bookmark className="w-6 h-6" />
-            </div>
+          <div className="p-6 text-center sm:text-left">
+            <span className="flex items-center justify-center sm:justify-start gap-2 text-sm text-ink-soft">
+              <Bookmark size={16} /> Currently Borrowed
+            </span>
+            <p className="mt-2 text-3xl font-bold">
+              {loadingStats ? "…" : borrowedCount}
+            </p>
+            <Link href="/my-borrows" className="mt-3 inline-block text-xs font-semibold text-brand underline-offset-4 hover:underline">
+              View borrowed books →
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* Quick Navigation Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      {/* Quick Actions */}
+      <div className="grid gap-4 sm:grid-cols-2">
         <Link
           href="/add-book"
-          className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group"
+          className="flex items-center gap-4 rounded-xl border border-line bg-surface p-5 transition-transform hover:-translate-y-1"
         >
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <PlusCircle className="w-5 h-5" />
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-brand text-on-brand">
+            <Plus size={20} />
+          </span>
+          <div>
+            <h3 className="font-bold">Add a New Book</h3>
+            <p className="text-sm font-reading text-ink-soft">Share another title with the library.</p>
           </div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
-            Add a Book
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Contribute a new book to the library catalog with cover image.
-          </p>
         </Link>
 
         <Link
-          href="/my-books"
-          className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group"
+          href="/books"
+          className="flex items-center gap-4 rounded-xl border border-line bg-surface p-5 transition-transform hover:-translate-y-1"
         >
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <BookOpen className="w-5 h-5" />
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-accent text-on-accent">
+            <BookOpen size={20} />
+          </span>
+          <div>
+            <h3 className="font-bold">Browse Library Catalog</h3>
+            <p className="text-sm font-reading text-ink-soft">Explore fiction, science, history and more.</p>
           </div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
-            My Books
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            View, edit details, or remove books you have uploaded.
-          </p>
-        </Link>
-
-        <Link
-          href="/my-borrows"
-          className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group"
-        >
-          <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <Bookmark className="w-5 h-5" />
-          </div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
-            My Borrows
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Check due return dates and return borrowed copies.
-          </p>
         </Link>
       </div>
     </div>
