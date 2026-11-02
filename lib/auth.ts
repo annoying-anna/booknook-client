@@ -23,6 +23,15 @@ if (process.env.NODE_ENV === "development") {
 
 const db = client.db("booknook");
 
+const getAuthBaseUrl = () => {
+  if (process.env.BETTER_AUTH_URL) return process.env.BETTER_AUTH_URL;
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  if (process.env.NODE_ENV === "production") return "https://booknook-client-tau.vercel.app";
+  return "http://localhost:3000";
+};
+
 export const auth = betterAuth({
   database: mongodbAdapter(db),
   emailAndPassword: {
@@ -55,7 +64,8 @@ export const auth = betterAuth({
     "https://booknook-server-ashy.vercel.app",
     process.env.NEXT_PUBLIC_APP_URL || "",
     process.env.BETTER_AUTH_URL || "",
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "",
   ].filter(Boolean),
   secret: process.env.BETTER_AUTH_SECRET || "booknook_better_auth_secret_key_super_secret_60marks",
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  baseURL: getAuthBaseUrl(),
 });
