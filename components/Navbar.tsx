@@ -1,283 +1,120 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
-import { useSession, signOut } from "@/lib/auth-client";
-import { BookOpen, Moon, Sun, Menu, X, User, LogOut, PlusCircle, Bookmark, BookCopy } from "lucide-react";
-import toast from "react-hot-toast";
+import { useEffect, useRef, useState } from "react";
+import { BookOpen, LogOut, Menu, User, X } from "lucide-react";
+import { authClient } from "@/lib/auth-client"; // your BetterAuth client
+import ThemeToggle from "./ThemeToggle";
+
+const PUBLIC = [{ href: "/", label: "Home" }, { href: "/books", label: "All Books" }];
+const PRIVATE = [
+  { href: "/add-book", label: "Add Book" },
+  { href: "/my-books", label: "My Books" },
+  { href: "/my-borrows", label: "My Borrows" },
+];
+
+export function Logo() {
+  return (
+    <Link href="/" className="flex items-center gap-2.5" aria-label="BookNook home">
+      <span className="grid h-9 w-9 place-items-center rounded-lg bg-brand text-on-brand"><BookOpen size={20} /></span>
+      <span className="text-xl font-bold tracking-tight">BookNook</span>
+    </Link>
+  );
+}
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: session, isPending } = useSession();
+  const { data: session, isPending } = authClient.useSession();
+  const user = session?.user;
+  const [menu, setMenu] = useState(false);
+  const [drop, setDrop] = useState(false);
+  const dropRef = useRef<HTMLDivElement>(null);
 
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Initialize theme
+  useEffect(() => { setMenu(false); setDrop(false); }, [pathname]);
   useEffect(() => {
-    const saved = localStorage.getItem("booknook_theme") as "light" | "dark" | null;
-    const initial = saved || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    setTheme(initial);
-    if (initial === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    const close = (e: MouseEvent) => { if (dropRef.current && !dropRef.current.contains(e.target as Node)) setDrop(false); };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
   }, []);
 
-  const toggleTheme = () => {
-    const nextTheme = theme === "light" ? "dark" : "light";
-    setTheme(nextTheme);
-    localStorage.setItem("booknook_theme", nextTheme);
-    if (nextTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  };
+  const links = user ? [...PUBLIC, ...PRIVATE] : PUBLIC;
+  const active = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleLogout = async () => {
-    setDropdownOpen(false);
-    try {
-      await signOut();
-      toast.success("Successfully logged out!");
-      router.push("/login");
-    } catch {
-      toast.error("Logout failed. Please try again.");
-    }
-  };
-
-  const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/books", label: "All Books" },
-    ...(session?.user
-      ? [
-          { href: "/add-book", label: "Add Book" },
-          { href: "/my-books", label: "My Books" },
-          { href: "/my-borrows", label: "My Borrows" },
-        ]
-      : []),
-  ];
+  async function logout() {
+    await authClient.signOut();
+    router.push("/");
+    router.refresh();
+  }
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo & Brand */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
-              <BookOpen className="w-5 h-5" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-                Book<span className="text-emerald-600 dark:text-emerald-400">Nook</span>
-              </span>
-              <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 -mt-1">
-                Online Library
-              </span>
-            </div>
-          </Link>
+    <header className="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur">
+      <div className="wrap flex h-16 items-center justify-between gap-4">
+        <Logo />
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1.5">
-            {navLinks.map((link) => {
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 font-semibold"
-                      : "text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
+        <nav className="hidden items-center gap-6 md:flex" aria-label="Main">
+          {links.map((l) => (
+            <Link key={l.href} href={l.href} aria-current={active(l.href) ? "page" : undefined}
+              className={`relative py-2 text-sm font-medium transition-colors ${active(l.href) ? "text-ink" : "text-ink-soft hover:text-ink"}`}>
+              {l.label}
+              {active(l.href) && <span className="absolute inset-x-0 -bottom-px h-0.5 rounded bg-accent" />}
+            </Link>
+          ))}
+        </nav>
 
-          {/* Right Actions: Theme Toggle + Auth */}
-          <div className="flex items-center gap-3">
-            {/* Theme Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              aria-label="Toggle theme"
-              className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              {theme === "light" ? (
-                <Moon className="w-4 h-4 text-slate-700" />
-              ) : (
-                <Sun className="w-4 h-4 text-amber-400" />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+
+          {isPending ? (
+            <span className="h-10 w-10 rounded-full bg-line/70" aria-hidden />
+          ) : user ? (
+            <div className="relative" ref={dropRef}>
+              <button onClick={() => setDrop((v) => !v)} aria-haspopup="menu" aria-expanded={drop} aria-label="Account menu"
+                className="grid h-10 w-10 place-items-center overflow-hidden rounded-full border-2 border-line bg-brand text-sm font-bold text-on-brand hover:border-brand">
+                {user.image
+                  // eslint-disable-next-line @next/next/no-img-element
+                  ? <img src={user.image} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                  : user.name?.[0]?.toUpperCase()}
+              </button>
+              {drop && (
+                <div role="menu" className="animate-pop absolute right-0 mt-2 w-64 rounded-xl border border-line bg-surface p-2 shadow-xl">
+                  <div className="border-b border-line px-3 pb-3 pt-2">
+                    <p className="truncate font-semibold">{user.name}</p>
+                    <p className="truncate text-sm text-ink-soft">{user.email}</p>
+                  </div>
+                  <Link role="menuitem" href="/profile" className="mt-1 flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm hover:bg-paper"><User size={16} /> My Profile</Link>
+                  <button role="menuitem" onClick={logout} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-danger hover:bg-paper"><LogOut size={16} /> Logout</button>
+                </div>
               )}
-            </button>
+            </div>
+          ) : (
+            <div className="hidden items-center gap-2 sm:flex">
+              <Link href="/login" className="btn btn-outline h-10">Login</Link>
+              <Link href="/register" className="btn btn-primary h-10">Register</Link>
+            </div>
+          )}
 
-            {/* Auth Buttons / User Avatar */}
-            {!isPending && (
-              <>
-                {session?.user ? (
-                  <div className="relative" ref={dropdownRef}>
-                    <button
-                      onClick={() => setDropdownOpen(!dropdownOpen)}
-                      className="flex items-center gap-2 p-1 rounded-full border-2 border-emerald-500/40 hover:border-emerald-500 transition-all focus:outline-none"
-                      aria-expanded={dropdownOpen}
-                    >
-                      {session.user.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={session.user.image}
-                          alt={session.user.name || "User"}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-xs">
-                          {session.user.name ? session.user.name.charAt(0).toUpperCase() : "U"}
-                        </div>
-                      )}
-                    </button>
-
-                    {/* Dropdown Menu */}
-                    {dropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
-                        <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-700/60">
-                          <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
-                            {session.user.name || "Member"}
-                          </p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                            {session.user.email}
-                          </p>
-                        </div>
-
-                        <Link
-                          href="/profile"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
-                        >
-                          <User className="w-4 h-4 text-slate-500" />
-                          My Profile
-                        </Link>
-                        <Link
-                          href="/add-book"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
-                        >
-                          <PlusCircle className="w-4 h-4 text-emerald-500" />
-                          Add Book
-                        </Link>
-                        <Link
-                          href="/my-books"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
-                        >
-                          <BookCopy className="w-4 h-4 text-blue-500" />
-                          My Books
-                        </Link>
-                        <Link
-                          href="/my-borrows"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
-                        >
-                          <Bookmark className="w-4 h-4 text-amber-500" />
-                          My Borrows
-                        </Link>
-
-                        <div className="border-t border-slate-100 dark:border-slate-700/60 my-1"></div>
-
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          Logout
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="hidden sm:flex items-center gap-2">
-                    <Link
-                      href="/login"
-                      className="px-3.5 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                    >
-                      Login
-                    </Link>
-                    <Link
-                      href="/register"
-                      className="px-4 py-1.5 text-sm font-medium rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors"
-                    >
-                      Register
-                    </Link>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 md:hidden rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"
-              aria-label="Toggle mobile menu"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
+          <button className="grid h-10 w-10 place-items-center rounded-lg border border-line md:hidden" onClick={() => setMenu((v) => !v)} aria-label="Toggle menu" aria-expanded={menu}>
+            {menu ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </div>
+      </div>
 
-        {/* Mobile Dropdown Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium ${
-                  pathname === link.href
-                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
-                    : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
-              >
-                {link.label}
-              </Link>
+      {menu && (
+        <nav className="animate-pop border-t border-line bg-paper md:hidden" aria-label="Mobile">
+          <div className="wrap flex flex-col py-3">
+            {links.map((l) => (
+              <Link key={l.href} href={l.href} className={`rounded-lg px-3 py-3 text-base font-medium ${active(l.href) ? "bg-surface text-ink" : "text-ink-soft"}`}>{l.label}</Link>
             ))}
-
-            {!session?.user && (
-              <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
-                <Link
-                  href="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2 text-sm font-medium text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/register"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg"
-                >
-                  Register
-                </Link>
+            {!isPending && !user && (
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <Link href="/login" className="btn btn-outline">Login</Link>
+                <Link href="/register" className="btn btn-primary">Register</Link>
               </div>
             )}
           </div>
-        )}
-      </div>
+        </nav>
+      )}
     </header>
   );
 }
