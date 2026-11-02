@@ -1,23 +1,45 @@
 import Link from "next/link";
 import { CATEGORIES } from "@/lib/categories";
-
-// Desktop: spines of different heights on a shelf. Mobile: spines lie flat as stacked bars.
-const HEIGHTS = ["md:h-72", "md:h-64", "md:h-80", "md:h-60", "md:h-[17rem]"];
+import { ArrowRight, BookOpen, Compass, Sparkles } from "lucide-react";
 
 export default function CategoryShelf() {
   return (
-    <div>
-      <div className="flex flex-col gap-2 md:flex-row md:items-end">
-        {Object.entries(CATEGORIES).map(([name, c], i) => (
-          <Link key={name} href={`/books?category=${name}`} aria-label={`${name}: ${c.blurb}`}
-            className={`group flex h-16 items-center justify-between rounded-md px-5 text-white transition-transform hover:-translate-y-1.5 md:flex-1 md:flex-col md:justify-start md:px-0 md:py-6 md:hover:-translate-y-3 ${HEIGHTS[i]}`}
-            style={{ background: c.color }}>
-            <span className="text-xl font-bold md:[writing-mode:vertical-rl] md:rotate-180 md:text-2xl">{name}</span>
-            <span className="text-sm text-white/75 md:mt-auto md:px-3 md:text-center md:text-xs md:opacity-0 md:transition-opacity md:group-hover:opacity-100 md:group-focus-visible:opacity-100">{c.blurb}</span>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {Object.entries(CATEGORIES).map(([name, c]) => (
+          <Link
+            key={name}
+            href={`/books?category=${encodeURIComponent(name)}`}
+            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-line bg-surface p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
+          >
+            {/* Top spine color bar */}
+            <div
+              className="absolute top-0 inset-x-0 h-2 transition-all duration-300 group-hover:h-3"
+              style={{ background: c.color }}
+            />
+
+            <div>
+              <div
+                className="mb-4 inline-grid h-10 w-10 place-items-center rounded-xl text-white shadow-md"
+                style={{ background: c.color }}
+              >
+                <BookOpen size={18} />
+              </div>
+              <h3 className="text-xl font-bold text-ink group-hover:text-brand transition-colors">
+                {name}
+              </h3>
+              <p className="mt-2 text-xs font-reading text-ink-soft leading-relaxed">
+                {c.blurb}
+              </p>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-line/60 flex items-center justify-between text-xs font-bold text-ink-soft group-hover:text-brand">
+              <span>Explore titles</span>
+              <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+            </div>
           </Link>
         ))}
       </div>
-      <div className="hidden h-3 rounded-sm bg-line md:block" aria-hidden />
     </div>
   );
 }
