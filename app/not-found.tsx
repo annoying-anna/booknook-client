@@ -1,42 +1,18 @@
 import Link from "next/link";
-import { BookOpen, Home, ArrowLeft } from "lucide-react";
+import ShelfArt from "@/components/ShelfArt";
+
+export const metadata = { title: "BookNook | Page not found" };
 
 export default function NotFound() {
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4 py-16">
-      <div className="relative mb-6">
-        <div className="w-24 h-24 rounded-3xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-lg">
-          <BookOpen className="w-12 h-12" />
-        </div>
-        <span className="absolute -bottom-2 -right-2 px-3 py-1 rounded-full bg-slate-900 text-white dark:bg-slate-700 text-xs font-black shadow-md">
-          404
-        </span>
+    <div className="wrap section grid min-h-[60vh] items-center gap-12 md:grid-cols-2">
+      <div>
+        <p className="text-8xl font-bold leading-none text-brand sm:text-9xl">404</p>
+        <h1 className="mt-6 text-3xl font-bold">This page isn&apos;t on our shelves.</h1>
+        <p className="mt-3 max-w-md font-reading text-lg text-ink-soft">The link may be old or mistyped. Head back home and find your book from there.</p>
+        <Link href="/" className="btn btn-accent mt-8 h-12 px-7">Back to Home</Link>
       </div>
-
-      <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-        Page Not Found
-      </h1>
-
-      <p className="mt-3 text-base text-slate-600 dark:text-slate-400 max-w-md leading-relaxed">
-        The chapter you are looking for has been moved or doesn&apos;t exist in our library archives.
-      </p>
-
-      <div className="mt-8 flex items-center gap-3">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 shadow-md shadow-emerald-600/20 transition-all"
-        >
-          <Home className="w-4 h-4" />
-          <span>Back to Home</span>
-        </Link>
-        <Link
-          href="/books"
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Browse All Books</span>
-        </Link>
-      </div>
+      <div className="justify-self-center rounded-2xl bg-brand p-8 md:justify-self-end" style={{ background: "#1b2f4e" }}><ShelfArt /></div>
     </div>
   );
 }
