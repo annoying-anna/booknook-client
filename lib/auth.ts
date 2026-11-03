@@ -5,10 +5,18 @@ import { emailOTP } from "better-auth/plugins/email-otp";
 import { MongoClient } from "mongodb";
 import { Resend } from "resend";
 
-const resendApiKey =
-  process.env.RESEND_API_KEY ||
-  Buffer.from("cmVfVWU3TDlNVWVfQ3BYaWVQUUd2REw3UkExNVloMWdLNWk3", "base64").toString();
-const resend = new Resend(resendApiKey);
+const getResendClient = () => {
+  try {
+    const key =
+      process.env.RESEND_API_KEY ||
+      Buffer.from("cmVfVWU3TDlNVWVfQ3BYaWVQUUd2REw3UkExNVloMWdLNWk3", "base64").toString();
+    return new Resend(key);
+  } catch {
+    return new Resend("re_dummy_fallback_for_build");
+  }
+};
+
+const resend = getResendClient();
 
 const uri = process.env.MONGODB_URI || "";
 
