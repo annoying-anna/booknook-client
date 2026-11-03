@@ -7,6 +7,7 @@ import { authClient } from "@/lib/auth-client";
 import { fetchBooks, fetchMyBorrows } from "@/lib/api";
 import Loader from "@/components/Loader";
 import { toast } from "sonner";
+import DigitalLibraryCard from "@/components/DigitalLibraryCard";
 import { BookOpen, Bookmark, LogOut, Plus } from "lucide-react";
 
 export default function ProfilePage() {
@@ -72,6 +73,15 @@ export default function ProfilePage() {
           Your BookNook reader account, library contributions, and active borrows.
         </p>
       </div>
+
+      {/* Digital Sanctuary Pass & Challenge Tracker */}
+      <DigitalLibraryCard
+        userName={user.name || "BookNook Member"}
+        userEmail={user.email}
+        userImage={user.image}
+        addedCount={addedCount}
+        borrowedCount={borrowedCount}
+      />
 
       <div className="overflow-hidden rounded-2xl border border-line bg-surface">
         <div className="p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6 border-b border-line">
