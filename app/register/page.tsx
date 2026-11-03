@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { AuthShell, GoogleButton, AuthLink, PasswordRules, isPasswordValid } from "@/components/auth";
 import Loader from "@/components/Loader";
-import { ArrowRight, Image as ImageIcon, Lock, Mail, User } from "lucide-react";
+import { ArrowRight, Image as ImageIcon, Lock, Mail, User, CheckCircle2, ExternalLink, RefreshCw } from "lucide-react";
 
 function RegisterForm() {
   const router = useRouter();
@@ -21,6 +21,8 @@ function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     document.title = "BookNook | Register";
@@ -63,9 +65,8 @@ function RegisterForm() {
         setError(msg);
         toast.error(msg);
       } else {
-        toast.success("Account created successfully! Please sign in.");
-        const target = redirect !== "/" ? `/login?redirect=${encodeURIComponent(redirect)}` : "/login";
-        router.push(target);
+        setRegisteredEmail(email.trim());
+        toast.success("Verification email dispatched! Check your inbox.");
       }
     } catch (err: unknown) {
       const msg = (err as Error)?.message || "Failed to register. Please try again.";
@@ -73,6 +74,30 @@ function RegisterForm() {
       toast.error(msg);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleResendEmail() {
+    if (!registeredEmail) return;
+    setResending(true);
+    try {
+      const res = await fetch("/api/auth/send-verification-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: registeredEmail,
+          callbackURL: redirect !== "/" ? `/login?redirect=${encodeURIComponent(redirect)}&verified=true` : "/login?verified=true",
+        }),
+      });
+      if (res.ok) {
+        toast.success(`Verification email re-sent to ${registeredEmail}`);
+      } else {
+        toast.error("Could not resend verification email right now.");
+      }
+    } catch {
+      toast.error("Failed to resend email.");
+    } finally {
+      setResending(false);
     }
   }
 
@@ -95,6 +120,61 @@ function RegisterForm() {
   }
 
   const valid = isPasswordValid(password);
+
+  if (registeredEmail) {
+    return (
+      <AuthShell
+        title="Check your inbox"
+        subtitle={`We have dispatched an activation email to ${registeredEmail}.`}
+        footer={
+          <>
+            Ready to log in?{" "}
+            <AuthLink href={redirect !== "/" ? `/login?redirect=${encodeURIComponent(redirect)}` : "/login"}>
+              Proceed to Sign In
+            </AuthLink>
+          </>
+        }
+      >
+        <div className="space-y-6 text-center">
+          <div className="mx-auto grid h-20 w-20 place-items-center rounded-3xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 shadow-md">
+            <Mail size={36} className="animate-bounce" />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold text-ink">Verification Email Sent</h3>
+            <p className="font-reading text-sm text-ink-soft leading-relaxed">
+              We sent a verification link to <strong className="text-ink">{registeredEmail}</strong> via Resend. Click the link inside the email to activate your account and start borrowing.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 pt-2">
+            <a
+              href="https://mail.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-primary h-12 w-full text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25"
+            >
+              <ExternalLink size={16} /> Open Gmail Inbox
+            </a>
+
+            <button
+              type="button"
+              onClick={handleResendEmail}
+              disabled={resending}
+              className="btn btn-outline h-11 w-full text-xs font-semibold flex items-center justify-center gap-2"
+            >
+              <RefreshCw size={14} className={resending ? "animate-spin" : ""} />
+              <span>{resending ? "Re-sending email…" : "Didn't receive it? Resend Email"}</span>
+            </button>
+          </div>
+
+          <div className="rounded-2xl border border-line bg-paper/60 p-4 text-xs font-reading text-ink-faint">
+            Tip: Be sure to check your Spam or Promotions folder if it doesn&apos;t appear within 60 seconds.
+          </div>
+        </div>
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell

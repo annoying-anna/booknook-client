@@ -19,13 +19,17 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     document.title = "BookNook | Login";
+    if (searchParams.get("verified") === "true") {
+      toast.success("Email verified successfully! You can now sign in.");
+    }
     if (!isPending && session?.user) {
       router.push(redirect);
     }
-  }, [session, isPending, redirect, router]);
+  }, [session, isPending, redirect, router, searchParams]);
 
   if (isPending) {
     return <Loader label="Verifying session" />;
@@ -89,6 +93,33 @@ function LoginForm() {
     toast.error("Password reset isn't available yet.");
   }
 
+  async function handleResendFromLogin() {
+    if (!email.trim()) {
+      toast.error("Please enter your email address above first.");
+      return;
+    }
+    setResending(true);
+    try {
+      const res = await fetch("/api/auth/send-verification-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          callbackURL: redirect !== "/" ? `/login?redirect=${encodeURIComponent(redirect)}&verified=true` : "/login?verified=true",
+        }),
+      });
+      if (res.ok) {
+        toast.success(`Verification email re-sent to ${email.trim()}`);
+      } else {
+        toast.error("Could not resend verification email right now.");
+      }
+    } catch {
+      toast.error("Failed to resend email.");
+    } finally {
+      setResending(false);
+    }
+  }
+
   return (
     <AuthShell
       title="Welcome back"
@@ -103,8 +134,18 @@ function LoginForm() {
       }
     >
       {error && (
-        <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 dark:border-rose-900/50 dark:bg-rose-950/40 p-4 text-xs font-semibold text-rose-700 dark:text-rose-300">
-          {error}
+        <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 dark:border-rose-900/50 dark:bg-rose-950/40 p-4 text-xs font-semibold text-rose-700 dark:text-rose-300 space-y-2">
+          <p>{error}</p>
+          {error.toLowerCase().includes("verif") && (
+            <button
+              type="button"
+              onClick={handleResendFromLogin}
+              disabled={resending}
+              className="text-xs font-bold text-blue-600 dark:text-blue-400 underline hover:no-underline"
+            >
+              {resending ? "Sending verification email…" : "Click here to resend verification email →"}
+            </button>
+          )}
         </div>
       )}
 
