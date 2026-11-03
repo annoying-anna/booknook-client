@@ -2,6 +2,10 @@ import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { jwt } from "better-auth/plugins/jwt";
 import { MongoClient } from "mongodb";
+import { Resend } from "resend";
+
+const resendApiKey = process.env.RESEND_API_KEY;
+const resend = new Resend(resendApiKey);
 
 const uri = process.env.MONGODB_URI || "";
 
@@ -36,7 +40,43 @@ export const auth = betterAuth({
   database: mongodbAdapter(db),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false,
+    requireEmailVerification: true,
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url, token }, request) => {
+      try {
+        await resend.emails.send({
+          from: "BookNook <onboarding@resend.dev>",
+          to: user.email,
+          subject: "Verify your BookNook Sanctuary Account",
+          html: `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 32px 20px; background-color: #ffffff; color: #1e293b;">
+              <div style="text-align: center; margin-bottom: 28px;">
+                <h1 style="color: #0f172a; font-size: 28px; font-weight: 800; margin: 0;">📖 BookNook</h1>
+                <p style="color: #64748b; font-size: 14px; margin-top: 6px;">Universal Community Library Sanctuary</p>
+              </div>
+              <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px; text-align: center;">
+                <h2 style="color: #0f172a; font-size: 20px; font-weight: 700; margin-top: 0;">Welcome, ${user.name || "Reader"}!</h2>
+                <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 16px 0 24px;">
+                  Thank you for joining BookNook. Please verify your email address to activate your digital library card, borrow physical volumes, and manage your private shelf.
+                </p>
+                <a href="${url}" style="display: inline-block; background-color: #2563eb; color: #ffffff; font-weight: 700; font-size: 15px; text-decoration: none; padding: 14px 32px; border-radius: 12px; box-shadow: 0 4px 12px rgba(37,99,235,0.25);">
+                  Verify Email Address →
+                </a>
+              </div>
+              <p style="color: #94a3b8; font-size: 12px; text-align: center; margin-top: 24px;">
+                If button doesn't work, copy and paste this link: ${url}
+              </p>
+            </div>
+          `,
+        });
+        console.log(`[Resend] Verification email dispatched to ${user.email}`);
+      } catch (err: unknown) {
+        console.warn("[Resend] Verification email delivery skipped/failed:", (err as Error)?.message);
+      }
+    },
   },
   socialProviders: {
     google: {
