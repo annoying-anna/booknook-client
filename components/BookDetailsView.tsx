@@ -1,7 +1,9 @@
 import { spineColor } from "@/lib/categories";
 import type { Book } from "@/lib/types";
-import { ArrowLeft, BookOpen, Calendar, CheckCircle2, ShieldCheck, Star, User, Sparkles } from "lucide-react";
+import { ArrowLeft, BookOpen, Calendar, CheckCircle2, ShieldCheck, Star, User, Sparkles, Share2, Clock, Check } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
+import { useState } from "react";
 
 export default function BookDetailsView({
   book,
@@ -14,21 +16,39 @@ export default function BookDetailsView({
   alreadyBorrowed?: boolean;
   busy?: boolean;
 }) {
+  const [copied, setCopied] = useState(false);
   const out = book.availableCopies !== undefined && book.availableCopies <= 0;
   const copiesFree = book.availableCopies ?? book.totalCopies ?? 0;
   const total = book.totalCopies ?? copiesFree;
   const color = spineColor(book.category);
 
+  function handleShare() {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      toast.success("Book link copied to clipboard!");
+      setTimeout(() => setCopied(false), 2500);
+    }
+  }
+
   return (
     <div className="wrap section">
-      {/* Back button */}
-      <div className="mb-8">
+      {/* Back button & Share */}
+      <div className="mb-8 flex items-center justify-between">
         <Link
           href="/books"
           className="inline-flex items-center gap-2 text-sm font-semibold text-ink-soft hover:text-brand transition-colors"
         >
           <ArrowLeft size={16} /> Back to Catalog
         </Link>
+
+        <button
+          onClick={handleShare}
+          className="btn btn-outline h-9 px-3.5 text-xs font-bold gap-2 text-ink-soft hover:text-ink"
+        >
+          {copied ? <Check size={14} className="text-emerald-500" /> : <Share2 size={14} />}
+          <span>{copied ? "Link Copied" : "Share Edition"}</span>
+        </button>
       </div>
 
       <div className="grid gap-12 lg:grid-cols-[minmax(0,24rem)_1fr] items-start">
@@ -106,6 +126,16 @@ export default function BookDetailsView({
             <p className="font-reading text-base leading-[1.8] text-ink-soft">
               {book.description}
             </p>
+
+            <div className="mt-4 pt-4 border-t border-line/60 flex flex-wrap items-center gap-4 text-xs font-reading text-ink-soft">
+              <span className="flex items-center gap-1.5">
+                <Clock size={14} className="text-blue-500" /> Estimated read time: ~6.5 hours
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck size={14} className="text-emerald-500" /> Community Preserved Copy
+              </span>
+            </div>
           </div>
 
           {/* Inventory & Status Cards */}
