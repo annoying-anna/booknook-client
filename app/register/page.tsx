@@ -186,8 +186,13 @@ function RegisterForm() {
               <Mail size={28} className="animate-pulse" />
             </div>
             <h3 className="text-xl font-bold text-ink">Check Your Inbox</h3>
-            <p className="font-reading text-xs text-ink-soft mt-1">
-              Enter the 6-digit OTP code sent to <strong className="text-ink">{registeredEmail}</strong>
+            <p className="font-reading text-xs text-ink-soft mt-1 leading-relaxed">
+              Enter the 6-digit OTP code sent to <strong className="text-ink">{registeredEmail}</strong>.
+              {registeredEmail !== "himelbarman22@gmail.com" && (
+                <span className="block mt-1 text-[11px] text-amber-600 dark:text-amber-400">
+                  (On Resend free sandbox, code is also delivered to your verified Resend email <strong>himelbarman22@gmail.com</strong>)
+                </span>
+              )}
             </p>
           </div>
 
