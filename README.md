@@ -5,7 +5,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16%20(App%20Router)-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![BetterAuth](https://img.shields.io/badge/Auth-BetterAuth%20%2B%20Google-purple?style=for-the-badge)](https://www.better-auth.com/)
 
-A modern, full-stack community library application where book enthusiasts can discover literary works, borrow physical copies with real-time inventory management, share their personal collections, and track active loans.
+A modern, full-stack community library application where book enthusiasts can discover literary masterworks, borrow physical copies with real-time atomic inventory management, share personal collections, and track reading milestones.
 
 Built with **Next.js (App Router)**, **TypeScript**, **Tailwind CSS v4**, **BetterAuth with JWT & JWKS**, and an **Express.js + MongoDB Atlas** backend service.
 
@@ -19,32 +19,36 @@ Built with **Next.js (App Router)**, **TypeScript**, **Tailwind CSS v4**, **Bett
 
 ## 📸 Website Previews & Screenshots
 
-### 1. Editorial Magazine Home & Swiper Hero
-> Interactive book showcase with dynamic gradients, real-time platform statistics, and smooth transitions.
+### 1. Editorial Magazine Home & Literary Matchmaker
+> Interactive book showcase with dynamic gradients, real-time community statistics, and the new **Literary Matchmaker** vibe recommender.
 ![BookNook Home Page](public/screenshots/home.png)
 
 <br />
 
-### 2. Comprehensive 40-Volume Catalog with Category Filtering
-> Browse 40 curated titles across Fiction, Science, History, Kids, and Others with dynamic search and stock indicators.
+### 2. Comprehensive 65-Volume Catalog with Bookshelf & Grid View
+> Browse 65 curated titles across Fiction, Science, History, Kids, and Others with dynamic search, sort criteria, in-stock filtering, and the toggleable **Wooden Bookshelf View**.
 ![Catalog and Filters](public/screenshots/catalog.png)
 
 <br />
 
 ### 3. Book Details & Hardcover Presentation
-> 3D book spine perspective, verified metadata, and atomic borrow modal with live stock validation.
+> 3D book spine perspective, verified metadata, read-time calculator, share sheet, and atomic borrow modal with live stock validation.
 ![Book Details View](public/screenshots/book-details.png)
 
 <br />
 
 ### 4. Split-Screen Authentication & Google OAuth
-> Secure Google Sign-In and credentials registration with live password rule verification.
+> Secure Google Sign-In and credentials registration with live password rule verification and seamless session retention.
 ![Authentication Screen](public/screenshots/login.png)
 
 ---
 
-## ✨ Key Features (60/60 Rubric Implementation)
+## ✨ Key Features & Creative Innovations (60/60 Rubric)
 
+- 🪵 **Interactive 3D Wooden Bookshelf Mode**: Seamlessly toggle between modern responsive card grids and an authentic library bookshelf with oak shelves, upright cloth-bound book spines, gold foil bands, and interactive click-to-inspect drawers.
+- 🧭 **Literary Matchmaker (Vibe Recommender)**: Select your reading mood (*Cosmic Wonder*, *Dystopian Thrills*, *Epic History*, *Gentle Nostalgia*, *Stoic Wisdom*) to instantly receive curated book recommendations with personalized reading reasons and match scores.
+- 🎧 **Web Audio Ambient Reading Lounge**: Built-in, zero-latency ambient soundscapes synthesized directly in the browser via the Web Audio API—choose between *Library Rain on Window*, *Crackling Fireplace*, or *Warm Café Murmur* with custom volume controls.
+- 🪪 **Holographic Digital Sanctuary Pass**: View and export a digital membership pass on `/profile` complete with member barcode, unique membership ID (`BNK-XXXX-LIT`), member tier ("Master Bibliophile"), and 2026 reading challenge progress bars.
 - 📚 **Cloth-Bound Spine Design System**: A bespoke bookish design system where each category (*Fiction, Science, History, Kids, Others*) features its signature spine color applied to cards, category shelves, loaders, and footer strips with full Dark/Light theme switching.
 - 🔄 **Atomic Borrowing with Duplicate Prevention**: Atomic `findOneAndUpdate` inventory decrement operations with `{ availableCopies: { $gt: 0 } }` and `$inc: -1`. Compound unique indexing on `{ bookId, userEmail }` strictly blocks duplicate borrows with HTTP 409 Conflict.
 - 🛡️ **BetterAuth with Remote JWKS Token Verification**: Full authentication featuring credentials login, real-time password criteria validation (uppercase, lowercase, minimum 6 characters), Google OAuth 2.0 integration, and cryptographically verified JWT authorization via `jose` remote JWKS (`/api/auth/jwks`).
@@ -56,15 +60,15 @@ Built with **Next.js (App Router)**, **TypeScript**, **Tailwind CSS v4**, **Bett
 
 ## 🗄️ Database Catalog Overview
 
-The library database is populated with **40 volumes** across all 5 official categories:
+The library database is populated with **65 masterwork volumes** across all 5 official categories:
 
 | Category | Count | Notable Volumes Included |
 |---|---|---|
-| **Fiction** | 8 | *1984*, *To Kill a Mockingbird*, *The Great Gatsby*, *Brave New World*, *Pride and Prejudice* |
-| **Science** | 8 | *Cosmos*, *A Brief History of Time*, *The Gene*, *The Selfish Gene*, *Thinking in Systems* |
-| **History** | 7 | *Sapiens*, *Guns, Germs, and Steel*, *The Silk Roads*, *SPQR*, *The Diary of a Young Girl* |
-| **Kids** | 8 | *The Little Prince*, *The Hobbit*, *Charlotte's Web*, *Harry Potter*, *Matilda*, *Winnie-the-Pooh* |
-| **Others** | 9 | *Atomic Habits*, *Thinking, Fast and Slow*, *The Psychology of Money*, *Meditations*, *Deep Work* |
+| **Fiction** | 13 | *1984*, *To Kill a Mockingbird*, *The Great Gatsby*, *Brave New World*, *Pride and Prejudice*, *The Picture of Dorian Gray*, *Fahrenheit 451*, *Frankenstein*, *Jane Eyre*, *The Alchemist* |
+| **Science** | 13 | *Cosmos*, *A Brief History of Time*, *The Gene*, *The Selfish Gene*, *Thinking in Systems*, *The Elegant Universe*, *The Structure of Scientific Revolutions*, *Gödel, Escher, Bach*, *The Origin of Species* |
+| **History** | 13 | *Sapiens*, *Guns, Germs, and Steel*, *The Silk Roads*, *SPQR*, *The Diary of a Young Girl*, *The Lessons of History*, *Team of Rivals*, *A Short History of Nearly Everything*, *The History of the Ancient World* |
+| **Kids** | 13 | *The Little Prince*, *The Hobbit*, *Charlotte's Web*, *Harry Potter*, *Matilda*, *Winnie-the-Pooh*, *The Secret Garden*, *Bridge to Terabithia*, *The Phantom Tollbooth*, *A Wrinkle in Time* |
+| **Others** | 13 | *Atomic Habits*, *Thinking, Fast and Slow*, *The Psychology of Money*, *Meditations*, *Deep Work*, *The Obstacle Is the Way*, *Flow*, *Zero to One*, *Essentialism*, *Steal Like an Artist* |
 
 ---
 
@@ -73,7 +77,7 @@ The library database is populated with **40 volumes** across all 5 official cate
 ```
 ┌────────────────────────────────────────────────────────┐
 │                   Next.js 16 Client                    │
-│      App Router · Tailwind CSS v4 · Framer Motion      │
+│   App Router · Web Audio API · 3D Bookshelf View       │
 └──────────────────────────┬─────────────────────────────┘
                            │
              BetterAuth    │ Bearer JWT Token
@@ -87,23 +91,9 @@ The library database is populated with **40 volumes** across all 5 official cate
                            ▼
 ┌────────────────────────────────────────────────────────┐
 │                  MongoDB Atlas Cluster                 │
-│      Collections: books · borrows · users · sessions   │
+│      Collections: books (65) · borrows · users         │
 └────────────────────────────────────────────────────────┘
 ```
-
-### Client Technologies
-* **Framework**: Next.js 16 (App Router with Turbopack)
-* **Language**: TypeScript 5
-* **Styling**: Tailwind CSS v4 design tokens (`@theme inline`)
-* **Authentication**: BetterAuth with MongoDB adapter & Google OAuth
-* **Icons & UI**: Lucide React, React Icons, Sonner toasts
-* **Animations & Sliders**: Swiper.js & Framer Motion
-
-### Server Technologies
-* **Runtime**: Node.js & Express.js
-* **Database**: MongoDB Atlas
-* **Security & Auth**: `jose` (JSON Web Key Set verification)
-* **Deployment**: Vercel Serverless Function
 
 ---
 
@@ -155,8 +145,3 @@ CLIENT_URL=https://booknook-client-tau.vercel.app
    npm run dev
    ```
    Open [http://localhost:3000](http://localhost:3000) in your browser.
-
----
-
-## 📝 License
-This project is developed for educational and portfolio demonstration purposes.
