@@ -23,6 +23,8 @@ function RegisterForm() {
   const [error, setError] = useState("");
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
 
   useEffect(() => {
     document.title = "BookNook | Register";
@@ -77,25 +79,62 @@ function RegisterForm() {
     }
   }
 
-  async function handleResendEmail() {
-    if (!registeredEmail) return;
-    setResending(true);
+  async function handleVerifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    if (!registeredEmail || !otp.trim()) {
+      toast.error("Please enter the 6-digit OTP code.");
+      return;
+    }
+
+    setVerifyingOtp(true);
     try {
-      const res = await fetch("/api/auth/send-verification-email", {
+      const res = await fetch("/api/auth/email-otp/verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: registeredEmail,
-          callbackURL: redirect !== "/" ? `/login?redirect=${encodeURIComponent(redirect)}&verified=true` : "/login?verified=true",
+          otp: otp.trim(),
         }),
       });
-      if (res.ok) {
-        toast.success(`Verification email re-sent to ${registeredEmail}`);
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const msg = data?.message || data?.error || "Invalid or expired OTP code.";
+        toast.error(msg);
       } else {
-        toast.error("Could not resend verification email right now.");
+        toast.success("Email verified successfully! Welcome to BookNook.");
+        const target = redirect !== "/" ? `/login?redirect=${encodeURIComponent(redirect)}&verified=true` : "/login?verified=true";
+        router.push(target);
+        router.refresh();
+      }
+    } catch (err: unknown) {
+      toast.error((err as Error)?.message || "Failed to verify OTP.");
+    } finally {
+      setVerifyingOtp(false);
+    }
+  }
+
+  async function handleResendOtp() {
+    if (!registeredEmail) return;
+    setResending(true);
+    try {
+      const res = await fetch("/api/auth/email-otp/send-verification-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: registeredEmail,
+          type: "email-verification",
+        }),
+      });
+
+      if (res.ok) {
+        toast.success(`New 6-digit OTP dispatched to ${registeredEmail}!`);
+      } else {
+        toast.error("Could not resend OTP right now. Please check again in 1 minute.");
       }
     } catch {
-      toast.error("Failed to resend email.");
+      toast.error("Failed to resend OTP.");
     } finally {
       setResending(false);
     }
@@ -124,52 +163,86 @@ function RegisterForm() {
   if (registeredEmail) {
     return (
       <AuthShell
-        title="Check your inbox"
-        subtitle={`We have dispatched an activation email to ${registeredEmail}.`}
+        title="Enter Verification Code"
+        subtitle={`We sent a 6-digit code to ${registeredEmail}.`}
         footer={
           <>
-            Ready to log in?{" "}
-            <AuthLink href={redirect !== "/" ? `/login?redirect=${encodeURIComponent(redirect)}` : "/login"}>
-              Proceed to Sign In
-            </AuthLink>
+            Entered the wrong email?{" "}
+            <button
+              onClick={() => {
+                setRegisteredEmail(null);
+                setOtp("");
+              }}
+              className="font-bold text-blue-600 dark:text-blue-400 underline"
+            >
+              Change email
+            </button>
           </>
         }
       >
-        <div className="space-y-6 text-center">
-          <div className="mx-auto grid h-20 w-20 place-items-center rounded-3xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 shadow-md">
-            <Mail size={36} className="animate-bounce" />
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-xl font-bold text-ink">Verification Email Sent</h3>
-            <p className="font-reading text-sm text-ink-soft leading-relaxed">
-              We sent a verification link to <strong className="text-ink">{registeredEmail}</strong> via Resend. Click the link inside the email to activate your account and start borrowing.
+        <div className="space-y-6">
+          <div className="text-center">
+            <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 shadow-sm mb-3">
+              <Mail size={28} className="animate-pulse" />
+            </div>
+            <h3 className="text-xl font-bold text-ink">Check Your Inbox</h3>
+            <p className="font-reading text-xs text-ink-soft mt-1">
+              Enter the 6-digit OTP code sent to <strong className="text-ink">{registeredEmail}</strong>
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 pt-2">
+          <form onSubmit={handleVerifyOtp} className="space-y-4">
+            <div>
+              <label className="label text-center" htmlFor="otp-input">
+                6-Digit Security Code
+              </label>
+              <input
+                id="otp-input"
+                type="text"
+                maxLength={6}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="• • • • • •"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
+                className="input text-center text-2xl font-black tracking-[12px] h-14 font-mono"
+                required
+                autoFocus
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={verifyingOtp || otp.length < 6}
+              className="btn btn-primary h-12 w-full text-sm font-bold shadow-lg shadow-blue-600/25"
+            >
+              {verifyingOtp ? "Verifying Code…" : "Verify Code & Activate"}
+            </button>
+          </form>
+
+          <div className="flex flex-col gap-2.5 pt-2 text-center">
+            <button
+              type="button"
+              onClick={handleResendOtp}
+              disabled={resending}
+              className="text-xs font-semibold text-ink-soft hover:text-brand flex items-center justify-center gap-1.5"
+            >
+              <RefreshCw size={13} className={resending ? "animate-spin" : ""} />
+              <span>{resending ? "Dispatching new code…" : "Didn't receive code? Resend OTP"}</span>
+            </button>
+
             <a
               href="https://mail.google.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-primary h-12 w-full text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25"
+              className="text-xs font-medium text-ink-faint hover:text-ink underline flex items-center justify-center gap-1"
             >
-              <ExternalLink size={16} /> Open Gmail Inbox
+              <ExternalLink size={12} /> Open Gmail
             </a>
-
-            <button
-              type="button"
-              onClick={handleResendEmail}
-              disabled={resending}
-              className="btn btn-outline h-11 w-full text-xs font-semibold flex items-center justify-center gap-2"
-            >
-              <RefreshCw size={14} className={resending ? "animate-spin" : ""} />
-              <span>{resending ? "Re-sending email…" : "Didn't receive it? Resend Email"}</span>
-            </button>
           </div>
 
-          <div className="rounded-2xl border border-line bg-paper/60 p-4 text-xs font-reading text-ink-faint">
-            Tip: Be sure to check your Spam or Promotions folder if it doesn&apos;t appear within 60 seconds.
+          <div className="rounded-xl border border-line bg-paper/60 p-3 text-[11px] font-reading text-ink-faint text-center">
+            Check your Spam or Promotions folder if the email doesn&apos;t arrive in 30 seconds.
           </div>
         </div>
       </AuthShell>

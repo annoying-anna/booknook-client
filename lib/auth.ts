@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { jwt } from "better-auth/plugins/jwt";
+import { emailOTP } from "better-auth/plugins/email-otp";
 import { MongoClient } from "mongodb";
 import { Resend } from "resend";
 
@@ -94,6 +95,43 @@ export const auth = betterAuth({
             name: session.user.name,
           };
         },
+      },
+    }),
+    emailOTP({
+      otpLength: 6,
+      expiresIn: 600,
+      sendVerificationOnSignUp: true,
+      sendVerificationOTP: async ({ email, otp, type }) => {
+        try {
+          await resend.emails.send({
+            from: "BookNook <onboarding@resend.dev>",
+            to: email,
+            subject: `Your BookNook Verification Code: ${otp}`,
+            html: `
+              <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 540px; margin: 0 auto; padding: 32px 20px; background-color: #ffffff; color: #1e293b;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                  <h1 style="color: #0f172a; font-size: 26px; font-weight: 800; margin: 0;">📖 BookNook</h1>
+                  <p style="color: #64748b; font-size: 13px; margin-top: 4px;">Universal Community Library Sanctuary</p>
+                </div>
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 32px 24px; text-align: center;">
+                  <h2 style="color: #0f172a; font-size: 18px; font-weight: 700; margin-top: 0;">Your Verification Passcode</h2>
+                  <p style="color: #64748b; font-size: 14px; margin: 12px 0 24px;">
+                    Enter the 6-digit verification code below on BookNook to verify your account:
+                  </p>
+                  <div style="display: inline-block; background-color: #0f172a; color: #38bdf8; font-size: 36px; font-weight: 900; letter-spacing: 10px; padding: 16px 32px; border-radius: 14px; font-family: monospace;">
+                    ${otp}
+                  </div>
+                  <p style="color: #94a3b8; font-size: 12px; margin-top: 24px; margin-bottom: 0;">
+                    This passcode expires in 10 minutes.
+                  </p>
+                </div>
+              </div>
+            `,
+          });
+          console.log(`[Resend] OTP ${otp} dispatched to ${email}`);
+        } catch (err: unknown) {
+          console.warn("[Resend] OTP delivery error:", (err as Error)?.message);
+        }
       },
     }),
   ],
