@@ -4,6 +4,7 @@ import { Bricolage_Grotesque, Literata } from "next/font/google";
 import { Toaster } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AmbientLounge from "@/components/AmbientLounge";
 import "./globals.css";
 
 const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage" });
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Suspense>
         <main className="flex-1">{children}</main>
         <Footer />
+        <AmbientLounge />
         <Toaster position="top-center" richColors closeButton />
       </body>
     </html>
