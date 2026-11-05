@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { spineColor } from "@/lib/categories";
 import type { Book } from "@/lib/types";
-import { ArrowRight, Star, User } from "lucide-react";
+import { ArrowRight, User } from "lucide-react";
 
 export default function BookCard({ book }: { book: Book }) {
   const isAvailable = book.availableCopies !== undefined ? book.availableCopies > 0 : (book.totalCopies ?? 1) > 0;
@@ -56,14 +56,6 @@ export default function BookCard({ book }: { book: Book }) {
       {/* Card Body */}
       <div className="flex flex-1 flex-col p-5 sm:p-6 justify-between">
         <div>
-          {/* Rating & Category header */}
-          <div className="flex items-center justify-between text-xs text-ink-soft mb-2">
-            <span className="flex items-center gap-1 text-amber-500 font-bold">
-              <Star size={13} className="fill-amber-400 text-amber-400" /> 4.9
-            </span>
-            <span className="font-reading text-ink-faint">Hardcover Edition</span>
-          </div>
-
           <h3 className="line-clamp-2 min-h-[3rem] text-lg font-bold leading-snug text-ink group-hover:text-brand transition-colors">
             {book.title}
           </h3>

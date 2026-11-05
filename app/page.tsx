@@ -7,7 +7,8 @@ import CategoryShelf from "@/components/CategoryShelf";
 import Reviews from "@/components/Reviews";
 import BookRecommender from "@/components/BookRecommender";
 import type { Book } from "@/lib/types";
-import { BookOpen, Sparkles, Trophy, Users, ShieldCheck } from "lucide-react";
+import { BookOpen, Trophy, Users, ShieldCheck } from "lucide-react";
+import { CATEGORIES } from "@/lib/categories";
 
 export const metadata = { title: "BookNook | Home" };
 
@@ -41,31 +42,31 @@ export default async function Home() {
     <>
       <HeroSlider />
 
-      {/* Community Reading Challenge & Milestone Bar */}
+      {/* Live community catalog snapshot */}
       <section className="border-b border-line bg-surface/80 py-6">
         <div className="wrap grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           <div className="space-y-1">
-            <p className="text-2xl sm:text-3xl font-extrabold text-ink">{allBooks.length || "65"}+</p>
+            <p className="text-2xl sm:text-3xl font-extrabold text-ink">{allBooks.length}</p>
             <p className="text-xs font-reading text-ink-soft flex items-center justify-center gap-1">
-              <BookOpen size={13} className="text-blue-500" /> Preserved Volumes
+              <BookOpen size={13} className="text-blue-500" /> Books in the catalog
             </p>
           </div>
           <div className="space-y-1">
-            <p className="text-2xl sm:text-3xl font-extrabold text-ink">2,480+</p>
+            <p className="text-2xl sm:text-3xl font-extrabold text-ink">{new Set(allBooks.map((book) => book.userEmail).filter(Boolean)).size}</p>
             <p className="text-xs font-reading text-ink-soft flex items-center justify-center gap-1">
-              <Users size={13} className="text-emerald-500" /> Active Readers
+              <Users size={13} className="text-emerald-500" /> Book contributors
             </p>
           </div>
           <div className="space-y-1">
-            <p className="text-2xl sm:text-3xl font-extrabold text-ink">99.8%</p>
+            <p className="text-2xl sm:text-3xl font-extrabold text-ink">{allBooks.reduce((total, book) => total + (book.availableCopies ?? book.totalCopies ?? 0), 0)}</p>
             <p className="text-xs font-reading text-ink-soft flex items-center justify-center gap-1">
-              <ShieldCheck size={13} className="text-indigo-500" /> Safe Return Rate
+              <ShieldCheck size={13} className="text-indigo-500" /> Copies available
             </p>
           </div>
           <div className="space-y-1">
-            <p className="text-2xl sm:text-3xl font-extrabold text-ink">100%</p>
+            <p className="text-2xl sm:text-3xl font-extrabold text-ink">{Object.keys(CATEGORIES).length}</p>
             <p className="text-xs font-reading text-ink-soft flex items-center justify-center gap-1">
-              <Trophy size={13} className="text-amber-500" /> Free & Open Access
+              <Trophy size={13} className="text-amber-500" /> Book categories
             </p>
           </div>
         </div>
@@ -104,10 +105,10 @@ export default async function Home() {
         <CategoryShelf />
       </section>
 
-      {/* What Readers Say Reviews Section (Rule 8) */}
+      {/* Ways to use the community library */}
       <section className="section border-t border-line">
         <div className="wrap">
-          <SectionHeading title="What readers say" />
+          <SectionHeading title="A little more room for reading" text="Everything you need to share a book and keep a loan on track." />
           <Reviews />
         </div>
       </section>

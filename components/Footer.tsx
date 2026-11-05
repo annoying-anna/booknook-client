@@ -1,18 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { FaFacebookF, FaGithub, FaInstagram, FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
-import { Mail, MapPin, Phone, Heart, BookOpen } from "lucide-react";
+import { FaGithub } from "react-icons/fa6";
+import { ExternalLink } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
 import { Logo } from "./Navbar";
 
-const SOCIALS = [
-  { href: "https://x.com", label: "X (formerly Twitter)", Icon: FaXTwitter },
-  { href: "https://github.com", label: "GitHub", Icon: FaGithub },
-  { href: "https://facebook.com", label: "Facebook", Icon: FaFacebookF },
-  { href: "https://instagram.com", label: "Instagram", Icon: FaInstagram },
-  { href: "https://linkedin.com", label: "LinkedIn", Icon: FaLinkedinIn },
-];
+const REPOSITORY = "https://github.com/annoying-anna/booknook-client";
 
 export default function Footer() {
   return (
@@ -33,20 +27,14 @@ export default function Footer() {
           <p className="text-sm font-reading text-slate-400 leading-relaxed max-w-sm">
             A community-first online library built for book lovers. Add a book, borrow with one tap, and share the joy of reading.
           </p>
-          <div className="flex gap-2.5 pt-2">
-            {SOCIALS.map(({ href, label, Icon }) => (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={label}
-                className="grid h-9 w-9 place-items-center rounded-xl border border-slate-800 bg-slate-900 text-slate-400 transition-all hover:border-blue-500 hover:bg-blue-600 hover:text-white"
-              >
-                <Icon size={14} />
-              </a>
-            ))}
-          </div>
+          <a
+            href={REPOSITORY}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:border-blue-500 hover:text-white"
+          >
+            <FaGithub size={14} /> View the project <ExternalLink size={12} />
+          </a>
         </div>
 
         {/* Quick Links */}
@@ -89,23 +77,15 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Library Info */}
+        {/* Project & Contact */}
         <div>
-          <h3 className="text-sm font-bold uppercase tracking-wider text-white">Central Library</h3>
-          <ul className="mt-4 space-y-3 text-sm text-slate-400">
-            <li className="flex gap-3">
-              <MapPin size={16} className="mt-0.5 shrink-0 text-blue-400" />
-              <span>124 Central Library Way, Reading Avenue, Dhaka</span>
-            </li>
-            <li className="flex gap-3">
-              <Phone size={16} className="mt-0.5 shrink-0 text-amber-400" />
-              <span>+880 1712-345678</span>
-            </li>
-            <li className="flex gap-3">
-              <Mail size={16} className="mt-0.5 shrink-0 text-emerald-400" />
-              <span>support@booknook.com</span>
-            </li>
-          </ul>
+          <h3 className="text-sm font-bold uppercase tracking-wider text-white">Project</h3>
+          <p className="mt-4 text-sm leading-relaxed text-slate-400">
+            BookNook is a community library project. For questions or feedback, open an issue in the project repository.
+          </p>
+          <a href={`${REPOSITORY}/issues`} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-300 hover:text-white">
+            Contact the project <ExternalLink size={14} />
+          </a>
         </div>
       </div>
 

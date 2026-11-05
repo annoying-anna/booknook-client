@@ -34,13 +34,13 @@ export function AuthShell({
         <div className="relative z-10 max-w-md space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs font-semibold backdrop-blur-md">
             <Sparkles size={14} className="text-amber-400" />
-            <span>Over 2,400+ Active Loans</span>
+            <span>A welcoming place for readers</span>
           </div>
           <h2 className="text-4xl font-extrabold leading-tight text-white">
             A sanctuary for passionate readers and book collectors.
           </h2>
           <p className="font-reading text-base leading-relaxed text-slate-300">
-            Join our community library to share books you cherish and borrow rare editions with zero late fees.
+            Join our community library to share books you cherish and borrow books from readers in your community.
           </p>
           <div className="pt-4">
             <ShelfArt className="max-w-xs drop-shadow-2xl" />

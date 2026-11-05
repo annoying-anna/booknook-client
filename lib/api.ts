@@ -10,7 +10,7 @@ export const API_BASE_URL =
   "https://booknook-server-ashy.vercel.app";
 
 export const IMGBB_API_KEY =
-  process.env.NEXT_PUBLIC_IMGBB_API_KEY || "5f4837799b0f09a4262a68084a5bf8d6";
+  process.env.NEXT_PUBLIC_IMGBB_API_KEY || "";
 
 /**
  * Get the Authorization header from BetterAuth JWT token
@@ -34,6 +34,7 @@ export async function getAuthHeader(): Promise<Record<string, string>> {
  * Upload an image file to ImgBB
  */
 export async function uploadToImgBB(file: File): Promise<string> {
+  if (!IMGBB_API_KEY) throw new Error("Image uploads are not configured. Add NEXT_PUBLIC_IMGBB_API_KEY to the client environment.");
   const formData = new FormData();
   formData.append("image", file);
 
