@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FaGithub } from "react-icons/fa6";
+import { FaGithub, FaXTwitter } from "react-icons/fa6";
 import { ExternalLink } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
 import { Logo } from "./Navbar";
@@ -27,14 +27,25 @@ export default function Footer() {
           <p className="text-sm font-reading text-slate-400 leading-relaxed max-w-sm">
             A community-first online library built for book lovers. Add a book, borrow with one tap, and share the joy of reading.
           </p>
-          <a
-            href={REPOSITORY}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:border-blue-500 hover:text-white"
-          >
-            <FaGithub size={14} /> View the project <ExternalLink size={12} />
-          </a>
+          <div className="flex items-center gap-3 pt-1">
+            <a
+              href={REPOSITORY}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:border-blue-500 hover:text-white"
+            >
+              <FaGithub size={14} /> GitHub <ExternalLink size={12} />
+            </a>
+            <a
+              href="https://x.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:border-blue-500 hover:text-white"
+              title="Follow BookNook on X"
+            >
+              <FaXTwitter size={14} /> X
+            </a>
+          </div>
         </div>
 
         {/* Quick Links */}

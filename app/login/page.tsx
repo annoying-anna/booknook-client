@@ -75,7 +75,16 @@ function LoginForm() {
           <div className="relative"><Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint" /><input id="login-email" type="email" className="input pl-10" placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" /></div>
         </div>
         <div>
-          <label className="label" htmlFor="login-password">Password</label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="label mb-0" htmlFor="login-password">Password</label>
+            <button
+              type="button"
+              onClick={() => toast.error("Password reset isn't available yet.")}
+              className="text-xs font-semibold text-primary hover:underline transition-colors cursor-pointer"
+            >
+              Forgot password?
+            </button>
+          </div>
           <div className="relative"><Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint" /><input id="login-password" type="password" className="input pl-10" placeholder="Your password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password" /></div>
         </div>
         <button type="submit" className="btn btn-primary mt-2 h-12 w-full" disabled={loading || googleLoading}>{loading ? "Signing in…" : "Sign in"}{!loading && <ArrowRight size={16} />}</button>

@@ -53,9 +53,9 @@ function RegisterForm() {
         toast.error(message);
         return;
       }
-      toast.success("Your account is ready. Welcome to BookNook!");
-      router.push(redirect);
-      router.refresh();
+      toast.success("Account created successfully! Please sign in.");
+      const loginTarget = redirect && redirect !== "/" ? `/login?redirect=${encodeURIComponent(redirect)}` : "/login";
+      router.push(loginTarget);
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "We couldn't create your account. Please try again.";
       setError(message);
